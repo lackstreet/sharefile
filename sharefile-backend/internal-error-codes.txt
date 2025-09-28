@@ -1,0 +1,13 @@
+DOCUMENDO CODICI DI ERRORE
+LAM-409-001 --> Tentativo di creazione utente con email duplicata
+LAM-409-002 --> Tentativo di creazione utente con email già presente su keycloak
+
+LAM-400-001 --> Tentativo di creazione utente con campo email Blank o null
+LAM-400-002 --> Tentativo di creazione utente con formato email non valida
+LAM-400-003 --> Tentativo di creazione utente con campo password Blank o null
+LAM-400-004 --> Tentativo di creazione utente con formato password non valida (non rispetta i vincoli di complessità)
+LAM-400-005 --> Tentativo di creazione utente con il campo First name Blank o null
+LAM-400-006 --> Tentativo di creazione utente con il campo Last name Blank o null
+
+LAM-500-001 --> Errore nel recupero dell'user ID Keycloak appena creato
+LAM-502-001 --> Errore durante la creazione dell'utente su keycloak
