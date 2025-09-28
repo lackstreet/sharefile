@@ -1,6 +1,5 @@
 package com.company.sharefile.entity;
 
-import io.quarkus.arc.runtime.ArcRecorder;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -22,7 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(exclude = {"uploadedFiles", "sharedLinks"})
-public class User extends PanacheEntityBase {
+public class UserEntity extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -81,11 +80,11 @@ public class User extends PanacheEntityBase {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    //@OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    //private List<File> uploadedFiles = new ArrayList<>();
+    @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<FileEntity> uploadedFiles = new ArrayList<>();
 
-    //@OneToMany(mappedBy = "sharedBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    //private List<SharedLink> sharedLinks = new ArrayList<>();
+//    @OneToMany(mappedBy = "shared_by", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+//    private List<SharedLink> sharedLinks = new ArrayList<>();
 
     // Lifecycle callbacks (solo per timestamp)
     @PrePersist
@@ -100,15 +99,15 @@ public class User extends PanacheEntityBase {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static User findByKeycloakId(String keycloakId) {
+    public static UserEntity findByKeycloakId(String keycloakId) {
         return find("keycloakId", keycloakId).firstResult();
     }
 
-    public static User findByEmail(String email) {
+    public static UserEntity findByEmail(String email) {
         return find("email", email).firstResult();
     }
 
-    public static User findByUsername(String username) {
+    public static UserEntity findByUsername(String username) {
         return find("username", username).firstResult();
     }
 

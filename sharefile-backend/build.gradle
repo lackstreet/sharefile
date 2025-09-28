@@ -41,10 +41,18 @@ dependencies {
     // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // H2 for testing
+    testImplementation 'io.quarkus:quarkus-jdbc-h2'
+
+    // Swagger/OpenAPI
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
+
 }
 
-group 'com.company.sharefile'
-version '1.0.0-SNAPSHOT'
+group = 'com.company.sharefile'
+version = '1.0.0-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -52,6 +60,7 @@ java {
 }
 
 test {
+    useJUnitPlatform()
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
