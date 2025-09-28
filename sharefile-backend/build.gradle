@@ -24,15 +24,26 @@ dependencies {
 
     // Security
     implementation 'io.quarkus:quarkus-oidc'
-    implementation 'io.quarkus:quarkus-security-jpa'
+    implementation 'io.quarkus:quarkus-smallrye-jwt'
+    implementation 'io.quarkus:quarkus-security'
+    implementation 'io.quarkus:quarkus-elytron-security-properties-file'
+
+    // KEYCLOAK ADMIN CLIENT - NUOVE DIPENDENZE
+    implementation 'org.keycloak:keycloak-admin-client:22.0.5'
+    implementation('org.keycloak:keycloak-core:22.0.5') {
+        exclude group: 'org.slf4j', module: 'slf4j-api' // Evita conflitti con Quarkus logging
+    }
+    implementation('org.keycloak:keycloak-common:22.0.5') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
 
     // Health
     implementation 'io.quarkus:quarkus-smallrye-health'
 
-    // MinIO
+    // MinIO per file storage
     implementation 'io.minio:minio:8.5.7'
 
-    //lombok
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
@@ -46,9 +57,20 @@ dependencies {
     // H2 for testing
     testImplementation 'io.quarkus:quarkus-jdbc-h2'
 
+    // Test con Keycloak embedded (opzionale per integration testing)
+    testImplementation 'io.quarkus:quarkus-test-keycloak-server'
+
     // Swagger/OpenAPI
     implementation 'io.quarkus:quarkus-smallrye-openapi'
+}
 
+// Forza risoluzione versioni per evitare conflitti
+configurations.all {
+    resolutionStrategy {
+        force 'org.keycloak:keycloak-admin-client:22.0.5'
+        force 'org.keycloak:keycloak-core:22.0.5'
+        force 'org.keycloak:keycloak-common:22.0.5'
+    }
 }
 
 group = 'com.company.sharefile'

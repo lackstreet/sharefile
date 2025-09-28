@@ -83,8 +83,8 @@ public class UserEntity extends PanacheEntityBase {
     @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<FileEntity> uploadedFiles = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "shared_by", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-//    private List<SharedLink> sharedLinks = new ArrayList<>();
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<SharedLinkEntity> sharedLinks = new ArrayList<>();
 
     // Lifecycle callbacks (solo per timestamp)
     @PrePersist
@@ -98,18 +98,4 @@ public class UserEntity extends PanacheEntityBase {
     protected void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    public static UserEntity findByKeycloakId(String keycloakId) {
-        return find("keycloakId", keycloakId).firstResult();
-    }
-
-    public static UserEntity findByEmail(String email) {
-        return find("email", email).firstResult();
-    }
-
-    public static UserEntity findByUsername(String username) {
-        return find("username", username).firstResult();
-    }
-
-
 }
