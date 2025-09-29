@@ -1,6 +1,6 @@
 package com.company.sharefile.config;
 
-import com.company.sharefile.dto.v1.ErrorResponseDTO;
+import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;

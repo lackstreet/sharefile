@@ -1,4 +1,4 @@
-package com.company.sharefile.dto.v1;
+package com.company.sharefile.dto.v1.response;
 
 import lombok.Getter;
 import lombok.Setter;

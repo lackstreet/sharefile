@@ -17,7 +17,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-jackson'
 
     // Database & ORM
-    implementation 'io.quarkus:quarkus-hibernate-orm'
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
     implementation 'io.quarkus:quarkus-hibernate-validator'
@@ -26,50 +25,44 @@ dependencies {
     implementation 'io.quarkus:quarkus-oidc'
     implementation 'io.quarkus:quarkus-smallrye-jwt'
     implementation 'io.quarkus:quarkus-security'
-    implementation 'io.quarkus:quarkus-elytron-security-properties-file'
 
-    // KEYCLOAK ADMIN CLIENT - NUOVE DIPENDENZE
-    implementation 'org.keycloak:keycloak-admin-client:22.0.5'
-    implementation('org.keycloak:keycloak-core:22.0.5') {
-        exclude group: 'org.slf4j', module: 'slf4j-api' // Evita conflitti con Quarkus logging
-    }
-    implementation('org.keycloak:keycloak-common:22.0.5') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
+    // Keycloak Admin Client
+    implementation('org.keycloak:keycloak-admin-client:24.0.5') {
+        exclude group: 'org.slf4j'
     }
 
-    // Health
+    // Health & Observability
     implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
 
-    // MinIO per file storage
-    implementation 'io.minio:minio:8.5.7'
+    // MinIO
+    implementation 'io.minio:minio:8.5.12'
+
+    // Utilities
+    implementation 'org.apache.commons:commons-text:1.12.0'
+
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
     // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
-    testCompileOnly 'org.projectlombok:lombok:1.18.30'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
     // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-
-    // H2 for testing
     testImplementation 'io.quarkus:quarkus-jdbc-h2'
-
-    // Test con Keycloak embedded (opzionale per integration testing)
     testImplementation 'io.quarkus:quarkus-test-keycloak-server'
 
-    // Swagger/OpenAPI
-    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
-// Forza risoluzione versioni per evitare conflitti
 configurations.all {
     resolutionStrategy {
-        force 'org.keycloak:keycloak-admin-client:22.0.5'
-        force 'org.keycloak:keycloak-core:22.0.5'
-        force 'org.keycloak:keycloak-common:22.0.5'
+        force 'org.keycloak:keycloak-admin-client:24.0.5'
     }
 }
 
@@ -83,14 +76,10 @@ java {
 
 test {
     useJUnitPlatform()
-    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    systemProperty 'java.util.logging.manager', 'org.jboss.logmanager.LogManager'
 }
 
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
-}
-
-compileTestJava {
-    options.encoding = 'UTF-8'
 }

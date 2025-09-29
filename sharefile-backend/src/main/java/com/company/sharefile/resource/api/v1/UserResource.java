@@ -1,7 +1,8 @@
 package com.company.sharefile.resource.api.v1;
 
-import com.company.sharefile.dto.v1.ErrorResponseDTO;
-import com.company.sharefile.dto.v1.UserDTO;
+import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
+import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
+import com.company.sharefile.dto.v1.response.UserCreateResponseDTO;
 import com.company.sharefile.service.UserService;
 
 import jakarta.inject.Inject;
@@ -37,7 +38,7 @@ public class UserResource {
                     responseCode = "201",
                     description = "user created successfully.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON,
-                            schema = @Schema(implementation = UserDTO.class))
+                            schema = @Schema(implementation = UserCreateRequestDTO.class))
             ),
             @APIResponse(
                     responseCode = "400",
@@ -52,11 +53,10 @@ public class UserResource {
                             schema = @Schema(implementation = ErrorResponseDTO.class))
             )
     })
-    public Response createUser(UserDTO userRequestDTO) {
+    public Response createUser(UserCreateRequestDTO userRequestDTO) {
 
         log.infof("Resource: Received request to create user for email: %s", userRequestDTO.getEmail());
-
-        UserDTO userResponseDTO = userService.createUser(userRequestDTO);
+        UserCreateResponseDTO userResponseDTO = userService.createUser(userRequestDTO);
 
         URI location = UriBuilder.fromPath("/api/v1/users/{id}")
                 .build(userResponseDTO.getId());
