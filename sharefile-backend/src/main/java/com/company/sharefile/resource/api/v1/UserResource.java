@@ -61,7 +61,7 @@ public class UserResource {
         URI location = UriBuilder.fromPath("/api/v1/users/{id}")
                 .build(userResponseDTO.getId());
 
-        log.infof("Resource: Successfully created user with ID: %d. Returning 201.", userResponseDTO.getId());
+        log.infof("Resource: Successfully created user with ID: %s. Returning 201.", userResponseDTO.getId());
 
         return Response.created(location)
                 .entity(userResponseDTO)

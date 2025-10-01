@@ -87,6 +87,9 @@ public class KeycloakService {
             // 7. IMPOSTA PASSWORD
             setPassword(usersResource, keycloakUserId, userRequestDTO.getPassword());
 
+            // 8. ASSEGNA RUOLO DI BASE ("user")
+            assignUserRole(usersResource, keycloakUserId);
+
             // 8. INVIA EMAIL DI VERIFICA (solo se abilitato)
             if (emailVerificationEnabled) {
                 sendVerificationEmail(usersResource, keycloakUserId);
@@ -130,6 +133,26 @@ public class KeycloakService {
             log.infof("User %s deleted from Keycloak", keycloakUserId);
         } catch (Exception e) {
             log.errorf(e, "Failed to delete user %s from Keycloak", keycloakUserId);
+        }
+    }
+
+    // Aggiungi questo metodo in KeycloakService
+    private void assignUserRole(UsersResource usersResource, String userId) {
+        try {
+            RealmResource realmResource = keycloak.realm(keycloakRealm);
+
+            // Trova il ruolo "user"
+            org.keycloak.representations.idm.RoleRepresentation userRole =
+                    realmResource.roles().get("user").toRepresentation();
+
+            // Assegna il ruolo all'utente
+            usersResource.get(userId).roles().realmLevel()
+                    .add(List.of(userRole));
+
+            log.infof("Role 'user' assigned to user: %s", userId);
+
+        } catch (Exception e) {
+            log.warnf(e, "Failed to assign role to user %s", userId);
         }
     }
 

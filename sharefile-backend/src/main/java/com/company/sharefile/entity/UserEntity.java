@@ -34,7 +34,7 @@ public class UserEntity extends PanacheEntityBase {
     @Column(name = "username", unique = true, nullable = false)
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 3, max = 255, message = "Username must be between 3 and 255 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_-]*$", message = "Username can only contain alphanumeric characters, underscores and dashes")
+    @Email(message = "Username must be a valid email")
     private String username;
 
     @Column(name = "email", unique = true, nullable = false)
