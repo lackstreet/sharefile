@@ -1,13 +1,16 @@
 package com.company.sharefile.resource.api.v1;
 
-import com.company.sharefile.dto.v1.request.LoginRequestDTO;
-import com.company.sharefile.dto.v1.response.LoginResponseDTO;
+import com.company.sharefile.dto.v1.request.AuthenticationRequestDTO;
+import com.company.sharefile.dto.v1.response.AuthenticationResponseDTO;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.logging.Logger;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.AccessTokenResponse;
@@ -36,8 +39,12 @@ public class AuthResource {
 
     @POST
     @Path("/login")
+    @APIResponse(responseCode = "200", description = "Successful login",
+    content = @Content (mediaType = MediaType.APPLICATION_JSON,
+    schema = @Schema (implementation = AuthenticationResponseDTO.class)))
+    @APIResponse(responseCode = "401", description = "Invalid username or password")
     @PermitAll
-    public Response login(LoginRequestDTO loginRequest) {
+    public Response login(AuthenticationRequestDTO loginRequest) {
 
         log.infof("Login attempt for user: %s", loginRequest.getUsername());
 
@@ -55,7 +62,7 @@ public class AuthResource {
 
             log.infof("User %s logged in successfully", loginRequest.getUsername());
 
-            LoginResponseDTO response = new LoginResponseDTO();
+            AuthenticationResponseDTO response = new AuthenticationResponseDTO();
             response.setAccessToken(tokenResponse.getToken());
             response.setRefreshToken(tokenResponse.getRefreshToken());
             response.setExpiresIn(tokenResponse.getExpiresIn());
@@ -94,7 +101,7 @@ public class AuthResource {
             keycloak.tokenManager().refreshToken();
             AccessTokenResponse tokenResponse = keycloak.tokenManager().getAccessToken();
 
-            LoginResponseDTO response = new LoginResponseDTO();
+            AuthenticationResponseDTO response = new AuthenticationResponseDTO();
             response.setAccessToken(tokenResponse.getToken());
             response.setRefreshToken(tokenResponse.getRefreshToken());
             response.setExpiresIn(tokenResponse.getExpiresIn());

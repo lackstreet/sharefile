@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginRequestDTO {
+public class AuthenticationRequestDTO {
     @Email(message = "Invalid email format")
     @Size(max = 255)
     @NotBlank(message = "Email is required")
