@@ -113,13 +113,6 @@ public class FileEntity extends PanacheEntityBase {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static FileEntity findByStoredFileName(String storedFileName) {
-        return find("storedFilename",storedFileName).firstResult();
-    }
-
-    public static FileEntity findByChecksum(String checksum) {
-        return find("checksumSha256",checksum).firstResult();
-    }
 
 
 }

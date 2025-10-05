@@ -3,6 +3,7 @@ package com.company.sharefile.resource.api.v1;
 import com.company.sharefile.dto.v1.request.AuthenticationRequestDTO;
 import com.company.sharefile.dto.v1.request.RefreshTokenRequestDTO;
 import com.company.sharefile.dto.v1.response.AuthenticationResponseDTO;
+import com.company.sharefile.service.UserService;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.common.annotation.Blocking;
@@ -43,6 +44,9 @@ public class AuthResource {
     @Inject
     SecurityIdentity identity;
 
+    @Inject
+    UserService userService;
+
     @POST
     @Path("/login")
     @PermitAll
@@ -65,6 +69,8 @@ public class AuthResource {
             response.setExpiresIn((long) ((Number) tokenResponse.get("expires_in")).intValue());
             response.setTokenType("Bearer");
 
+
+            userService.updateLastLogin(loginRequest.getUsername());
             log.infof("User %s logged in successfully", loginRequest.getUsername());
             return Response.ok(response).build();
 

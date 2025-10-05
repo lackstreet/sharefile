@@ -1,8 +1,11 @@
 package com.company.sharefile.resource.api.v1;
 
+import com.company.sharefile.dto.v1.records.QuotaInfo;
+import com.company.sharefile.dto.v1.records.UserInfoDTO;
 import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
 import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
 import com.company.sharefile.dto.v1.response.UserCreateResponseDTO;
+import com.company.sharefile.entity.UserEntity;
 import com.company.sharefile.service.UserService;
 
 import jakarta.annotation.security.PermitAll;
@@ -69,5 +72,66 @@ public class UserResource {
         return Response.created(location)
                 .entity(userResponseDTO)
                 .build();
+    }
+
+
+    @Path("/me")
+    @RolesAllowed({"user", "admin"})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get current user info")
+    @APIResponses(value = {
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Current user info retrieved successfully.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = UserInfoDTO.class))
+            ),
+            @APIResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @APIResponse(
+                    responseCode = "403",
+                    description = "Forbidden - Insufficient permissions.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ErrorResponseDTO.class))
+            )
+    })
+    public Response getCurrentUser() {
+        log.info("Getting current user info");
+
+        UserEntity user = userService.getCurrentUser();
+
+        return Response.ok(new UserInfoDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getCompany(),
+                user.getDepartment(),
+                user.getStorageQuotaBytes(),
+                user.getUsedStorageBytes(),
+                user.getIsActive()
+        )).build();
+    }
+
+    /**
+     * NUOVO: Info quota storage
+     */
+    @GET
+    @Path("/quota")
+    @RolesAllowed({"user", "admin"})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get storage quota info")
+    public Response getQuota() {
+        log.info("Getting quota info");
+
+        UserEntity user = userService.getCurrentUser();
+        QuotaInfo quota = userService.getQuotaInfo(user);
+
+        return Response.ok(quota).build();
     }
 }
