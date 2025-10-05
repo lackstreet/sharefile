@@ -12,7 +12,7 @@ public class UserUtils {
     @Inject
     Logger log;
 
-    public boolean hasAvailableQuota(@NotBlank UserEntity userEntity, Long fileSizeByte) {
+    public boolean hasAvailableQuota(UserEntity userEntity, Long fileSizeByte) {
         if(userEntity == null){
             log.warn("User entity is null during quota check.");
             throw new ApiException(

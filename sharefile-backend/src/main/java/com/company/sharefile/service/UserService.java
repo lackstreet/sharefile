@@ -8,6 +8,7 @@ import com.company.sharefile.exception.ApiException;
 import com.company.sharefile.mapper.UserMapper;
 import com.company.sharefile.repository.UserRepository;
 import com.company.sharefile.utils.UserUtils;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,8 +17,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.Claims;
 import org.jboss.logging.Logger;
 import org.apache.commons.text.WordUtils;
+import org.keycloak.representations.JsonWebToken;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -103,8 +106,11 @@ public class UserService {
 
     @Transactional
     public UserEntity getCurrentUser(){
-        String keycloakId = securityIdentity.getPrincipal().getName();
-        log.infof("UserService: Getting current user with keycloakId: %s, email: %s", keycloakId);
+        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) securityIdentity.getPrincipal();
+
+        String email  = principal.getClaim("email");
+        String keycloakId   = principal.getClaim(Claims.sub.name());
+        log.infof("UserService: Getting current user with keycloakId: %s, email: %s", keycloakId, email);
 
         UserEntity user = userRepository.findByKeycloakId(keycloakId);
         if(user == null){
@@ -123,7 +129,6 @@ public class UserService {
 
     @Transactional
     public boolean hasAvailableQuota(UserEntity user, Long fileSizeByte){
-        user = userRepository.findById(user.getId());
         if(user == null){
             log.warnf("User: %s not found in local DB during quota check.", user.getId());
             throw new ApiException(
@@ -156,13 +161,12 @@ public class UserService {
     }
 
     @Transactional
-    public void incrementUsedStorage(UUID userId, Long fileSizeBytes) {
-        UserEntity user = userRepository.findById(userId);
+    public void incrementUsedStorage(UserEntity user, Long fileSizeBytes) {
         if (user != null) {
             long newUsed = user.getUsedStorageBytes() + fileSizeBytes;
             user.setUsedStorageBytes(newUsed);
             log.infof("Storage incremented for user %s: %d -> %d bytes",
-                    userId, user.getUsedStorageBytes() - fileSizeBytes, newUsed);
+                    user.getId(), user.getUsedStorageBytes() - fileSizeBytes, newUsed);
         }
     }
 

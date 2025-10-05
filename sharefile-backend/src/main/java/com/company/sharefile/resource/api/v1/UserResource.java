@@ -76,7 +76,7 @@ public class UserResource {
 
 
     @Path("/me")
-    @RolesAllowed({"user", "admin"})
+    @RolesAllowed({"sharefile_admin", "sharefile_user"})
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get current user info")
     @APIResponses(value = {
@@ -123,7 +123,7 @@ public class UserResource {
      */
     @GET
     @Path("/quota")
-    @RolesAllowed({"user", "admin"})
+    @RolesAllowed({"sharefile_admin", "sharefile_user"})
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get storage quota info")
     public Response getQuota() {

@@ -56,7 +56,7 @@ public class FileEntity extends PanacheEntityBase {
     @Min(value = 1, message = "File size cannot be less than 0 bytes")
     private Long fileSizeBytes;
 
-    @Column(name = "checksum_sha256", unique = true, nullable = false)
+    @Column(name = "checksum_sha256", nullable = false)
     @Size(max = 64, message = "Checksum cannot be longer than 255 characters")
     private String checksumSha256;
 

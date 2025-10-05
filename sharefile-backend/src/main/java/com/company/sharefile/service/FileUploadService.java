@@ -58,7 +58,8 @@ public class FileUploadService {
             }
 
             // 2️ Leggi file in memoria per calcolare checksum e salvare
-            String checksum = fileUtils.calculateChecksum(new ByteArrayInputStream(fileStream.readAllBytes()));
+            byte[] fileBytes = fileStream.readAllBytes();
+            String checksum = fileUtils.calculateChecksum(new ByteArrayInputStream(fileBytes));
             log.infof("File checksum calculated: %s", checksum);
 
             // 3️ Verifica deduplicazione
@@ -74,7 +75,7 @@ public class FileUploadService {
 
             // 4. File nuovo - salva fisicamente
             String storedFilename = fileUtils.generateStoredFilename(originalFileName);
-            Path uploadPath = fileUtils.saveFileToDisk(fileStream, storedFilename);
+            Path uploadPath = fileUtils.saveFileToDisk(new ByteArrayInputStream(fileBytes), storedFilename);
 
             // 5. Crea record DB
             FileEntity file = new FileEntity();
@@ -92,7 +93,7 @@ public class FileUploadService {
                 throw new ApiException ("File record could not be created", Response.Status.INTERNAL_SERVER_ERROR, "LAM-500-001");
 
             // 6. Aggiorna quota utente
-            userService.incrementUsedStorage(user.getId(), fileSize);
+            userService.incrementUsedStorage(user, fileSize);
 
             log.infof("File uploaded successfully: id=%s, path=%s",
                     file.getId(), uploadPath);
