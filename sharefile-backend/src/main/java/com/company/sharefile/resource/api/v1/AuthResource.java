@@ -1,35 +1,38 @@
 package com.company.sharefile.resource.api.v1;
 
 import com.company.sharefile.dto.v1.request.AuthenticationRequestDTO;
+import com.company.sharefile.dto.v1.request.RefreshTokenRequestDTO;
 import com.company.sharefile.dto.v1.response.AuthenticationResponseDTO;
+import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-import org.keycloak.admin.client.KeycloakBuilder;
-import org.keycloak.representations.AccessTokenResponse;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
+import com.company.sharefile.client.KeycloakTokenClient;
 
 import java.util.Map;
 
 @Path("/api/v1/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Blocking
 public class AuthResource {
 
     @Inject
     Logger log;
 
-    @ConfigProperty(name = "keycloak.server-url")
-    String keycloakServerUrl;
-
-    @ConfigProperty(name = "keycloak.realm")
-    String realm;
+    @Inject
+    @RestClient
+    KeycloakTokenClient tokenClient;
 
     @ConfigProperty(name = "quarkus.oidc.client-id")
     String clientId;
@@ -37,46 +40,48 @@ public class AuthResource {
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
     String clientSecret;
 
+    @Inject
+    SecurityIdentity identity;
+
     @POST
     @Path("/login")
-    @APIResponse(responseCode = "200", description = "Successful login",
-    content = @Content (mediaType = MediaType.APPLICATION_JSON,
-    schema = @Schema (implementation = AuthenticationResponseDTO.class)))
-    @APIResponse(responseCode = "401", description = "Invalid username or password")
     @PermitAll
     public Response login(AuthenticationRequestDTO loginRequest) {
-
         log.infof("Login attempt for user: %s", loginRequest.getUsername());
 
         try {
-            org.keycloak.admin.client.Keycloak userKeycloak = KeycloakBuilder.builder()
-                    .serverUrl(keycloakServerUrl)
-                    .realm(realm)
-                    .username(loginRequest.getUsername())
-                    .password(loginRequest.getPassword())
-                    .clientId(clientId)
-                    .clientSecret(clientSecret)
-                    .build();
+            MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+            formData.putSingle("grant_type", "password");
+            formData.putSingle("client_id", clientId);
+            formData.putSingle("client_secret", clientSecret);
+            formData.putSingle("username", loginRequest.getUsername());
+            formData.putSingle("password", loginRequest.getPassword());
 
-            AccessTokenResponse tokenResponse = userKeycloak.tokenManager().getAccessToken();
-
-            log.infof("User %s logged in successfully", loginRequest.getUsername());
+            Map<String, Object> tokenResponse = tokenClient.getToken(formData);
 
             AuthenticationResponseDTO response = new AuthenticationResponseDTO();
-            response.setAccessToken(tokenResponse.getToken());
-            response.setRefreshToken(tokenResponse.getRefreshToken());
-            response.setExpiresIn(tokenResponse.getExpiresIn());
+            response.setAccessToken((String) tokenResponse.get("access_token"));
+            response.setRefreshToken((String) tokenResponse.get("refresh_token"));
+            response.setExpiresIn((long) ((Number) tokenResponse.get("expires_in")).intValue());
             response.setTokenType("Bearer");
 
+            log.infof("User %s logged in successfully", loginRequest.getUsername());
             return Response.ok(response).build();
 
-        } catch (Exception e) {
+        } catch (ClientWebApplicationException e) {
             log.errorf("Login failed for user %s: %s", loginRequest.getUsername(), e.getMessage());
-
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(Map.of(
                             "error", "invalid_grant",
                             "error_description", "Invalid username or password"
+                    ))
+                    .build();
+        } catch (Exception e) {
+            log.errorf(e, "Login error for user %s", loginRequest.getUsername());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of(
+                            "error", "server_error",
+                            "error_description", "Authentication service error"
                     ))
                     .build();
         }
@@ -85,38 +90,70 @@ public class AuthResource {
     @POST
     @Path("/refresh")
     @PermitAll
-    public Response refreshToken(Map<String, String> request) {
-
-        String refreshToken = request.get("refresh_token");
+    public Response refreshToken(RefreshTokenRequestDTO request) {
         log.info("Token refresh attempt");
 
         try {
-            org.keycloak.admin.client.Keycloak keycloak = KeycloakBuilder.builder()
-                    .serverUrl(keycloakServerUrl)
-                    .realm(realm)
-                    .clientId(clientId)
-                    .clientSecret(clientSecret)
-                    .build();
+            MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+            formData.putSingle("grant_type", "refresh_token");
+            formData.putSingle("client_id", clientId);
+            formData.putSingle("client_secret", clientSecret);
+            formData.putSingle("refresh_token", request.getRefreshToken());
 
-            keycloak.tokenManager().refreshToken();
-            AccessTokenResponse tokenResponse = keycloak.tokenManager().getAccessToken();
+            Map<String, Object> tokenResponse = tokenClient.getToken(formData);
 
             AuthenticationResponseDTO response = new AuthenticationResponseDTO();
-            response.setAccessToken(tokenResponse.getToken());
-            response.setRefreshToken(tokenResponse.getRefreshToken());
-            response.setExpiresIn(tokenResponse.getExpiresIn());
+            response.setAccessToken((String) tokenResponse.get("access_token"));
+            response.setRefreshToken((String) tokenResponse.get("refresh_token"));
+            response.setExpiresIn((long) ((Number) tokenResponse.get("expires_in")).intValue());
             response.setTokenType("Bearer");
 
+            log.info("Token refreshed successfully");
             return Response.ok(response).build();
 
-        } catch (Exception e) {
+        } catch (ClientWebApplicationException e) {
             log.errorf("Token refresh failed: %s", e.getMessage());
-
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(Map.of(
                             "error", "invalid_token",
                             "error_description", "Invalid or expired refresh token"
                     ))
+                    .build();
+        } catch (Exception e) {
+            log.errorf(e, "Token refresh error");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of(
+                            "error", "server_error",
+                            "error_description", "Token refresh failed"
+                    ))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path("/logout")
+    @Authenticated
+    public Response logout(RefreshTokenRequestDTO request) {
+        log.info("Logout attempt");
+
+        try {
+            MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+            formData.putSingle("client_id", clientId);
+            formData.putSingle("client_secret", clientSecret);
+            formData.putSingle("refresh_token", request.getRefreshToken());
+
+            tokenClient.logout(formData);
+
+            String username = identity.getPrincipal().getName();
+            log.infof("Logout requested by user: %s", username);
+
+            log.info("User logged out successfully");
+            return Response.ok(Map.of("message", "Logged out successfully")).build();
+
+        } catch (Exception e) {
+            log.errorf(e, "Logout error");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "server_error"))
                     .build();
         }
     }

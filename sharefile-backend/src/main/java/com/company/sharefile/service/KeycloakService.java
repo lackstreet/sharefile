@@ -11,6 +11,7 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
@@ -30,11 +31,10 @@ public class KeycloakService {
     @ConfigProperty(name = "keycloak.email.verification.enabled")
     boolean emailVerificationEnabled;
 
-    @ConfigProperty(name = "keycloak.email.welcome.enabled")
-    boolean welcomeEmailEnabled;
 
     public String createUserInKeycloak(UserCreateRequestDTO userRequestDTO) {
         Response response = null;
+        String keycloakUserId="";
 
         try {
             log.infof("Creating user in Keycloak: %s", userRequestDTO.getEmail());
@@ -50,7 +50,7 @@ public class KeycloakService {
             List<UserRepresentation> existingUsers = usersResource.search(normalizedEmail, true);
 
             if (!existingUsers.isEmpty()) {
-                log.warnf("User with email %s already exists in Keycloak", normalizedEmail);
+                log.errorf("User with email %s already exists in Keycloak", normalizedEmail);
                 throw new ApiException(
                         "User already exists in Keycloak.",
                         Response.Status.CONFLICT,
@@ -81,30 +81,25 @@ public class KeycloakService {
             }
 
             // 6. ESTRAI USER ID
-            String keycloakUserId = extractUserIdFromResponse(response);
+            keycloakUserId = extractUserIdFromResponse(response);
             log.infof("Keycloak user created successfully with ID: %s", keycloakUserId);
 
             // 7. IMPOSTA PASSWORD
             setPassword(usersResource, keycloakUserId, userRequestDTO.getPassword());
 
-            // 8. ASSEGNA RUOLO DI BASE ("user")
-            assignUserRole(usersResource, keycloakUserId);
+            // 8. ASSEGNA GRUPPO DI BASE ("user")
+            assignGroup(usersResource, keycloakUserId);
 
             // 8. INVIA EMAIL DI VERIFICA (solo se abilitato)
             if (emailVerificationEnabled) {
                 sendVerificationEmail(usersResource, keycloakUserId);
             }
 
-            // 9. INVIA EMAIL DI BENVENUTO (opzionale)
-            if (welcomeEmailEnabled) {
-                sendWelcomeEmail(usersResource, keycloakUserId);
-            }
-
             return keycloakUserId;
 
-        } catch (ApiException e) {
-            throw e;
         } catch (Exception e) {
+            if( !keycloakUserId.isBlank())
+                deleteUserFromKeycloak(keycloakUserId);
             log.errorf(e, "Unexpected error creating user in Keycloak: %s", e.getMessage());
             throw new ApiException(
                     "Failed to create user in Keycloak: " + e.getMessage(),
@@ -137,22 +132,29 @@ public class KeycloakService {
     }
 
     // Aggiungi questo metodo in KeycloakService
-    private void assignUserRole(UsersResource usersResource, String userId) {
+    private void assignGroup(UsersResource usersResource, String userId) {
         try {
             RealmResource realmResource = keycloak.realm(keycloakRealm);
 
-            // Trova il ruolo "user"
-            org.keycloak.representations.idm.RoleRepresentation userRole =
-                    realmResource.roles().get("user").toRepresentation();
+            // Find the "Users" group
+            GroupRepresentation usersGroup = realmResource.groups()
+                    .groups("Users", 0, 1)  // Search by name
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Group 'Users' not found"));
 
-            // Assegna il ruolo all'utente
-            usersResource.get(userId).roles().realmLevel()
-                    .add(List.of(userRole));
+            // Assign the group to the user
+            usersResource.get(userId).joinGroup(usersGroup.getId());
 
-            log.infof("Role 'user' assigned to user: %s", userId);
+            log.infof("Group 'Users' assigned to user: %s", userId);
 
         } catch (Exception e) {
-            log.warnf(e, "Failed to assign role to user %s", userId);
+            log.errorf(e, "Failed to assign group to user %s", userId);
+            throw new ApiException(
+                    String.format("Failed to assign group to user %s in Keycloak. user deleted", userId),
+                    Response.Status.INTERNAL_SERVER_ERROR,
+                    "LAM-500-006"
+            );
         }
     }
 
@@ -209,13 +211,4 @@ public class KeycloakService {
         }
     }
 
-    private void sendWelcomeEmail(UsersResource usersResource, String userId) {
-        try {
-            // Keycloak non ha un'API diretta per welcome email
-            // Puoi implementare questo con email custom o usando execute-actions-email
-            log.infof("📧 Welcome email would be sent for user: %s (not implemented)", userId);
-        } catch (Exception e) {
-            log.warnf(e, "Failed to send welcome email for user %s", userId);
-        }
-    }
 }

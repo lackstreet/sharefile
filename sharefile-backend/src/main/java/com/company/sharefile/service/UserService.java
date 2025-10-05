@@ -69,20 +69,15 @@ public class UserService {
             // 6. CONVERTI E RESTITUISCI DTO
             return userMapper.toCreateResponseDTO(newUser);
 
-        } catch (Exception e) {
+        } catch (ApiException e) {
             // ROLLBACK: Se qualcosa fallisce, elimina da Keycloak
             if (keycloakUserId != null) {
                 log.warnf("Rolling back - deleting user %s from Keycloak", keycloakUserId);
                 keycloakService.deleteUserFromKeycloak(keycloakUserId);
             }
-
-            if (e instanceof ApiException) {
-                throw (ApiException) e;
-            }
-
-            log.errorf(e, "Unexpected error creating user");
+            log.errorf(e, "Unexpected error creating user with email %s", normalizedEmail);
             throw new ApiException(
-                    "Failed to create user: " + e.getMessage(),
+                    String.format("Failed to create user with email %s. error: %s", normalizedEmail, e.getMessage()),
                     Response.Status.INTERNAL_SERVER_ERROR,
                     "LAM-500-005"
             );

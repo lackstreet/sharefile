@@ -15,6 +15,7 @@ dependencies {
     // REST API
     implementation 'io.quarkus:quarkus-rest'
     implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-rest-client-jackson'
 
     // Database & ORM
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
@@ -26,10 +27,8 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-jwt'
     implementation 'io.quarkus:quarkus-security'
 
-    // Keycloak Admin Client
-    implementation('org.keycloak:keycloak-admin-client:24.0.5') {
-        exclude group: 'org.slf4j'
-    }
+    // Keycloak - USA L'ESTENSIONE QUARKUS (Raccomandato!)
+    implementation 'io.quarkus:quarkus-keycloak-admin-rest-client'  //
 
     // Health & Observability
     implementation 'io.quarkus:quarkus-smallrye-health'
@@ -62,7 +61,7 @@ dependencies {
 
 configurations.all {
     resolutionStrategy {
-        force 'org.keycloak:keycloak-admin-client:24.0.5'
+        // Rimuovi force di keycloak-admin-client
     }
 }
 

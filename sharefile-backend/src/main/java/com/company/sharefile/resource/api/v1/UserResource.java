@@ -5,6 +5,8 @@ import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
 import com.company.sharefile.dto.v1.response.UserCreateResponseDTO;
 import com.company.sharefile.service.UserService;
 
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -20,7 +22,7 @@ import org.jboss.logging.Logger;
 
 import java.net.URI;
 
-
+@PermitAll
 @Path("/api/v1/users")
 public class UserResource {
     @Inject
@@ -29,6 +31,7 @@ public class UserResource {
     @Inject
     Logger log;
 
+    @Path("/create")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new user",
