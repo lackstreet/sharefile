@@ -1,8 +1,9 @@
 package com.company.sharefile.service;
 
 import com.company.sharefile.dto.v1.records.QuotaInfo;
-import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
-import com.company.sharefile.dto.v1.response.UserCreateResponseDTO;
+import com.company.sharefile.dto.v1.records.UserInfoDTO;
+import com.company.sharefile.dto.v1.records.request.UserCreateRequestDTO;
+import com.company.sharefile.dto.v1.records.response.UserCreateResponseDTO;
 import com.company.sharefile.entity.UserEntity;
 import com.company.sharefile.exception.ApiException;
 import com.company.sharefile.mapper.UserMapper;
@@ -20,7 +21,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.Claims;
 import org.jboss.logging.Logger;
 import org.apache.commons.text.WordUtils;
-import org.keycloak.representations.JsonWebToken;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -49,11 +49,11 @@ public class UserService {
 
 
     @Transactional
-    public UserCreateResponseDTO createUser(UserCreateRequestDTO userRequestDTO) {
-        log.infof("UserService: Creating new user with email: %s", userRequestDTO.getEmail());
+    public UserCreateResponseDTO createAccess(UserCreateRequestDTO newUserRequest) {
+        log.infof("UserService: Creating new user with email: %s", newUserRequest.email());
 
         // 1. NORMALIZZA EMAIL
-        String normalizedEmail = userRequestDTO.getEmail().toLowerCase().trim();
+        String normalizedEmail = newUserRequest.email().toLowerCase().trim();
 
         // 2. VERIFICA SE L'UTENTE ESISTE GIÀ NEL DB LOCALE
         UserEntity existingUser = userRepository.findByEmail(normalizedEmail);
@@ -70,7 +70,7 @@ public class UserService {
 
         try {
             // 3. CREA UTENTE IN KEYCLOAK
-            keycloakUserId = keycloakService.createUserInKeycloak(userRequestDTO);
+            keycloakUserId = keycloakService.createUserInKeycloak(newUserRequest);
             log.infof("User created in Keycloak with ID: %s", keycloakUserId);
 
             // 4. CREA RECORD LOCALE
@@ -78,8 +78,8 @@ public class UserService {
             newUser.setKeycloakId(keycloakUserId);
             newUser.setEmail(normalizedEmail);
             newUser.setUsername(normalizedEmail);
-            newUser.setFirstName(WordUtils.capitalizeFully(userRequestDTO.getFirstName().trim()));
-            newUser.setLastName(WordUtils.capitalizeFully(userRequestDTO.getLastName().trim()));
+            newUser.setFirstName(WordUtils.capitalizeFully(newUserRequest.firstName().trim()));
+            newUser.setLastName(WordUtils.capitalizeFully(newUserRequest.lastName().trim()));
             newUser.setIsActive(true);
 
             // 5. SALVA NEL DB LOCALE
@@ -105,9 +105,8 @@ public class UserService {
     }
 
     @Transactional
-    public UserEntity getCurrentUser(){
+    public UserInfoDTO getCurrentUser(){
         OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) securityIdentity.getPrincipal();
-
         String email  = principal.getClaim("email");
         String keycloakId   = principal.getClaim(Claims.sub.name());
         log.infof("UserService: Getting current user with keycloakId: %s, email: %s", keycloakId, email);
@@ -124,13 +123,13 @@ public class UserService {
         }
         user.setLastLoginAt(LocalDateTime.now());
         log.infof("User last login updated for keycloakId: %s", keycloakId);
-        return user;
+        return userMapper.toUserInfoDTO(user);
     }
 
     @Transactional
-    public boolean hasAvailableQuota(UserEntity user, Long fileSizeByte){
+    public boolean hasAvailableQuota(UserInfoDTO user, Long fileSizeByte){
         if(user == null){
-            log.warnf("User: %s not found in local DB during quota check.", user.getId());
+            log.warnf("User: %s not found in local DB during quota check.");
             throw new ApiException(
                     "User not found in local database.",
                     jakarta.ws.rs.core.Response.Status.NOT_FOUND,
@@ -152,11 +151,15 @@ public class UserService {
         }
     }
 
-    public QuotaInfo getQuotaInfo(UserEntity user) {
+    public QuotaInfo getQuotaInfo() {
+        UserInfoDTO user = getCurrentUser();
+        log.infof("Getting quota info for user %s", user.id());
+        long available = Math.max(0, user.storageQuotaBytes() - user.usedStorageBytes());
+
         return new QuotaInfo(
-                user.getStorageQuotaBytes(),
-                user.getUsedStorageBytes(),
-                user.getStorageQuotaBytes() - user.getUsedStorageBytes()
+                user.storageQuotaBytes(),
+                user.usedStorageBytes(),
+                available
         );
     }
 

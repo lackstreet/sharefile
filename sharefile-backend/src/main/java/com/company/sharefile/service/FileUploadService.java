@@ -1,23 +1,18 @@
 package com.company.sharefile.service;
 
+import com.company.sharefile.dto.v1.records.response.FileUploadResponseDTO;
 import com.company.sharefile.entity.FileEntity;
-import com.company.sharefile.entity.UserEntity;
+import com.company.sharefile.entity.TransferEntity;
 import com.company.sharefile.exception.ApiException;
-import com.company.sharefile.repository.FileRepository;
-import com.company.sharefile.utils.FileUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.resource.spi.ConfigProperty;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -27,88 +22,161 @@ public class FileUploadService {
     Logger log;
 
     @Inject
-    UserService userService;
-
-    @Inject
-    FileRepository fileRepository;
-
-    @Inject
-    FileUtils fileUtils;
+    StorageService storageService; // ← Usa l'interfaccia!
 
     @Transactional
-    public FileEntity uploadFile(
-            UserEntity user,
-            String originalFileName,
-            String mimeType,
-            Long fileSize,
-            @NotNull InputStream fileStream,
-            String uploadIpAddress
-    ) {
-        log.infof("Starting upload for user %s: file %s, size %d bytes", user.getId(), originalFileName, fileSize);
+    public FileUploadResponseDTO uploadFile(UUID fileId, InputStream fileInputStream) throws IOException {
+
+        FileEntity fileEntity = FileEntity.findById(fileId);
+
+        if (fileEntity == null) {
+            throw new ApiException(
+                    "File entity not found",
+                    Response.Status.NOT_FOUND,
+                    "LAM-404-002"
+            );
+        }
+
+        if (!"pending".equals(fileEntity.getStoredFileName())) {
+            throw new ApiException(
+                    "File already uploaded",
+                    Response.Status.CONFLICT,
+                    "LAM-409-001"
+            );
+        }
 
         try {
-            // 1 Controlla quota
-            if (!userService.hasAvailableQuota(user, fileSize)) {
-                log.warnf("User %s has no available quota for file %s", user.getId(), originalFileName);
-                throw new ApiException(
-                        String.format("User %s has no available quota for file %s", user.getId(), originalFileName),
-                        Response.Status.REQUEST_ENTITY_TOO_LARGE,
-                        "LAM-413-001"
-                );
-            }
+            // Usa StorageService (filesystem o MinIO)
+            StorageService.StorageResult result = storageService.storeFile(
+                    fileInputStream,
+                    fileEntity.getOriginalFileName(),
+                    fileEntity.getMimeType(),
+                    fileEntity.getFileSizeBytes()
+            );
 
-            // 2️ Leggi file in memoria per calcolare checksum e salvare
-            byte[] fileBytes = fileStream.readAllBytes();
-            String checksum = fileUtils.calculateChecksum(new ByteArrayInputStream(fileBytes));
-            log.infof("File checksum calculated: %s", checksum);
+            // Aggiorna FileEntity
+            fileEntity.setStoredFileName(extractFileName(result.storagePath()));
+            fileEntity.setFilePath(result.storagePath());
+            fileEntity.setChecksumSha256(result.checksum());
+            fileEntity.persist();
 
-            // 3️ Verifica deduplicazione
-            FileEntity existingFile = fileRepository.findByCheckSum(checksum);
+            log.infof("✅ File uploaded: %s -> %s", fileId, result.storagePath());
 
-            if (existingFile != null && !existingFile.getIsDeleted()) {
-                log.infof("File with same checksum already exists, creating reference: %s", existingFile.getId());
-                return fileUtils.createDuplicateReference(
-                        user, originalFileName, mimeType, fileSize,
-                        checksum, existingFile, uploadIpAddress
-                );
-            }
+            // Verifica completamento transfer
+            checkTransferCompletion(fileEntity.getTransferId());
 
-            // 4. File nuovo - salva fisicamente
-            String storedFilename = fileUtils.generateStoredFilename(originalFileName);
-            Path uploadPath = fileUtils.saveFileToDisk(new ByteArrayInputStream(fileBytes), storedFilename);
+            return new FileUploadResponseDTO(
+                    fileId,
+                    fileEntity.getOriginalFileName(),
+                    result.fileSize(),
+                    result.checksum(),
+                    true
+            );
 
-            // 5. Crea record DB
-            FileEntity file = new FileEntity();
-            file.setOriginalFileName(originalFileName);
-            file.setStoredFileName(storedFilename);
-            file.setFilePath(uploadPath.toString());
-            file.setMimeType(mimeType);
-            file.setFileSizeBytes(fileSize);
-            file.setChecksumSha256(checksum);
-            file.setUploadedBy(user);
-            file.setUploadIp(uploadIpAddress);
-            file.setIsVirusScanned(false); // TODO: integra ClamAV
-            fileRepository.persist(file);
-            if(!file.isPersistent())
-                throw new ApiException ("File record could not be created", Response.Status.INTERNAL_SERVER_ERROR, "LAM-500-001");
-
-            // 6. Aggiorna quota utente
-            userService.incrementUsedStorage(user, fileSize);
-
-            log.infof("File uploaded successfully: id=%s, path=%s",
-                    file.getId(), uploadPath);
-
-            return file;
-
-        } catch (IOException | NoSuchAlgorithmException e) {
-            log.error("Error uploading file", e);
-            throw new ApiException("Internal server error during file upload",
-                    Response.Status.INTERNAL_SERVER_ERROR, "LAM-500-001");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.errorf(e, "❌ Upload failed: %s", fileId);
+            throw new ApiException(
+                    "Error uploading file: " + e.getMessage(),
+                    Response.Status.INTERNAL_SERVER_ERROR,
+                    "LAM-500-002"
+            );
         }
     }
 
+    @Transactional
+    public FileUploadResponseDTO uploadFileFromTemp(String fileIdStr, File tempFile) throws IOException {
 
+        UUID fileId = parseFileId(fileIdStr);
+        FileEntity fileEntity = FileEntity.findById(fileId);
 
+        if (fileEntity == null) {
+            throw new ApiException(
+                    "File entity not found",
+                    Response.Status.NOT_FOUND,
+                    "LAM-404-002"
+            );
+        }
+
+        if (!"pending".equals(fileEntity.getStoredFileName())) {
+            throw new ApiException(
+                    "File already uploaded",
+                    Response.Status.CONFLICT,
+                    "LAM-409-001"
+            );
+        }
+
+        try {
+            // Usa StorageService
+            StorageService.StorageResult result = storageService.storeFileFromTemp(
+                    tempFile,
+                    "fileEntity.getOriginalFileName()",
+                    "fileEntity.getMimeType()"
+            );
+
+            // Aggiorna FileEntity
+            fileEntity.setStoredFileName(extractFileName(result.storagePath()));
+            fileEntity.setFilePath(result.storagePath());
+            fileEntity.setChecksumSha256(result.checksum());
+            fileEntity.persist();
+
+            log.infof("✅ File uploaded from temp: %s", fileId);
+
+            checkTransferCompletion(fileEntity.getTransferId());
+
+            return new FileUploadResponseDTO(
+                    fileId,
+                    fileEntity.getOriginalFileName(),
+                    result.fileSize(),
+                    result.checksum(),
+                    true
+            );
+
+        } catch (Exception e) {
+            log.errorf(e, "❌ Upload from temp failed: %s", fileId);
+            throw new ApiException(
+                    "Error uploading file: " + e.getMessage(),
+                    Response.Status.INTERNAL_SERVER_ERROR,
+                    "LAM-500-002"
+            );
+        }
+    }
+
+    @Transactional
+    protected void checkTransferCompletion(TransferEntity transfer) {
+        long uploadedCount = FileEntity.count(
+                "transferId = ?1 and storedFileName != 'pending'",
+                transfer
+        );
+
+        log.infof("Transfer %s: %d/%d files uploaded",
+                transfer.getId(), uploadedCount, transfer.getTotalFiles());
+
+        if (uploadedCount == transfer.getTotalFiles()) {
+            transfer.setStatus(TransferEntity.TransferStatus.EXHAUSTED);
+            transfer.persist();
+            log.infof("✅ Transfer %s completed", transfer.getId());
+        }
+    }
+
+    private UUID parseFileId(String fileIdStr) {
+        try {
+            return UUID.fromString(fileIdStr);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(
+                    "Invalid file ID format",
+                    Response.Status.BAD_REQUEST,
+                    "LAM-400-001"
+            );
+        }
+    }
+
+    private String extractFileName(String path) {
+        int lastSlash = path.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            return path.substring(lastSlash + 1);
+        }
+        // Filesystem path (Windows/Unix)
+        lastSlash = path.lastIndexOf(File.separator);
+        return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+    }
 }

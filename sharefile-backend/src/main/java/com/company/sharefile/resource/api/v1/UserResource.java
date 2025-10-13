@@ -2,14 +2,13 @@ package com.company.sharefile.resource.api.v1;
 
 import com.company.sharefile.dto.v1.records.QuotaInfo;
 import com.company.sharefile.dto.v1.records.UserInfoDTO;
-import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
-import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
-import com.company.sharefile.dto.v1.response.UserCreateResponseDTO;
-import com.company.sharefile.entity.UserEntity;
+import com.company.sharefile.dto.v1.records.response.ErrorResponseDTO;
+import com.company.sharefile.dto.v1.records.request.UserCreateRequestDTO;
+import com.company.sharefile.dto.v1.records.response.UserCreateResponseDTO;
 import com.company.sharefile.service.UserService;
 
+import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -59,24 +58,24 @@ public class UserResource {
                             schema = @Schema(implementation = ErrorResponseDTO.class))
             )
     })
-    public Response createUser(UserCreateRequestDTO userRequestDTO) {
+    public Response createUser(UserCreateRequestDTO newUser) {
 
-        log.infof("Resource: Received request to create user for email: %s", userRequestDTO.getEmail());
-        UserCreateResponseDTO userResponseDTO = userService.createUser(userRequestDTO);
+        log.infof("Resource: Received request to create user for email: %s", newUser.email());
+        UserCreateResponseDTO userCreated = userService.createAccess(newUser);
 
         URI location = UriBuilder.fromPath("/api/v1/users/{id}")
-                .build(userResponseDTO.getId());
+                .build(userCreated.id());
 
-        log.infof("Resource: Successfully created user with ID: %s. Returning 201.", userResponseDTO.getId());
+        log.infof("Resource: Successfully created user with ID: %s. Returning 201.", userCreated.id());
 
         return Response.created(location)
-                .entity(userResponseDTO)
+                .entity(userCreated)
                 .build();
     }
 
 
     @Path("/me")
-    @RolesAllowed({"sharefile_admin", "sharefile_user"})
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get current user info")
     @APIResponses(value = {
@@ -102,20 +101,9 @@ public class UserResource {
     public Response getCurrentUser() {
         log.info("Getting current user info");
 
-        UserEntity user = userService.getCurrentUser();
+        UserInfoDTO user = userService.getCurrentUser();
 
-        return Response.ok(new UserInfoDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getCompany(),
-                user.getDepartment(),
-                user.getStorageQuotaBytes(),
-                user.getUsedStorageBytes(),
-                user.getIsActive()
-        )).build();
+        return Response.ok(user).build();
     }
 
     /**
@@ -123,15 +111,12 @@ public class UserResource {
      */
     @GET
     @Path("/quota")
-    @RolesAllowed({"sharefile_admin", "sharefile_user"})
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get storage quota info")
     public Response getQuota() {
         log.info("Getting quota info");
-
-        UserEntity user = userService.getCurrentUser();
-        QuotaInfo quota = userService.getQuotaInfo(user);
-
+        QuotaInfo quota = userService.getQuotaInfo();
         return Response.ok(quota).build();
     }
 }

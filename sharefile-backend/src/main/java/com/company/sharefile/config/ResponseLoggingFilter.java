@@ -1,6 +1,6 @@
 package com.company.sharefile.config;
 
-import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
+import com.company.sharefile.dto.v1.records.response.ErrorResponseDTO;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -19,7 +19,7 @@ public class ResponseLoggingFilter implements ContainerResponseFilter {
         String path = requestContext.getUriInfo().getAbsolutePath().getPath();
         int status = responseContext.getStatus();
 
-        log.errorf("API_RESPONSE: Metodo=%s, Path=%s, Status=%d", method, path, status);
+        log.infof("API_RESPONSE: Metodo=%s, Path=%s, Status=%d", method, path, status);
 
         if (status >= 400) {
             Object entity = responseContext.getEntity();
@@ -33,9 +33,9 @@ public class ResponseLoggingFilter implements ContainerResponseFilter {
                                 "Message ='%s' " +
                                 "Documented error code = %s",
                         status,
-                        errorDTO.getError(),
-                        errorDTO.getMessage(),
-                        errorDTO.getInternalDocumentationErrorCode());
+                        errorDTO.error(),
+                        errorDTO.message(),
+                        errorDTO.internalDocumentationErrorCode());
             }
         }
     }

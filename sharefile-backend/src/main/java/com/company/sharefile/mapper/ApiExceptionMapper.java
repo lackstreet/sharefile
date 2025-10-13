@@ -1,6 +1,6 @@
 package com.company.sharefile.mapper;
 
-import com.company.sharefile.dto.v1.response.ErrorResponseDTO;
+import com.company.sharefile.dto.v1.records.response.ErrorResponseDTO;
 import com.company.sharefile.exception.ApiException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;

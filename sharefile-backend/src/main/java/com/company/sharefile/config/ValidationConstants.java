@@ -162,4 +162,9 @@ public final class ValidationConstants {
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String ISO_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+    public static final String ROLE_ADMIN = "sharefile_admin";
+    public static final String ROLE_USER = "sharefile_user";
+    public static final String ROLE_ADMIN_USER = "sharefile_admin,sharefile_user";
+    public static final String ROLE_ALL = "sharefile_user";
 }

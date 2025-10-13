@@ -1,5 +1,6 @@
 package com.company.sharefile.utils;
 
+import com.company.sharefile.dto.v1.records.UserInfoDTO;
 import com.company.sharefile.entity.FileEntity;
 import com.company.sharefile.entity.UserEntity;
 import com.company.sharefile.exception.ApiException;
@@ -63,7 +64,7 @@ public class FileUtils {
         return UUID.randomUUID().toString() + "_" + System.currentTimeMillis() + extension;
     }
 
-    public void deleteFile(UUID fileId, UserEntity user) {
+    public void deleteFile(UUID fileId, UserInfoDTO user) {
         FileEntity file = fileRepository.findById(fileId);
 
         if (file == null) {
@@ -74,7 +75,7 @@ public class FileUtils {
             );
         }
 
-        if (!file.getUploadedBy().getId().equals(user.getId()) && !securityIdentity.getRoles().contains("admin")) {
+        if (!file.getUploadedBy().getId().equals(user.id()) && !securityIdentity.getRoles().contains("admin")) {
             throw new ApiException(
                     "Unauthorized to delete this file",
                     Response.Status.FORBIDDEN,
@@ -85,9 +86,9 @@ public class FileUtils {
         file.setIsDeleted(true);
         file.setDeletedAt(java.time.LocalDateTime.now());
 
-        userService.decrementUsedStorage(user.getId(), file.getFileSizeBytes());
+        userService.decrementUsedStorage(user.id(), file.getFileSizeBytes());
 
-        log.infof("File soft-deleted: id=%s, user=%s", fileId, user.getId());
+        log.infof("File soft-deleted: id=%s, user=%s", fileId, user.id());
     }
 
     public Path saveFileToDisk(InputStream fileStream, String storedFilename) throws Exception {
@@ -101,7 +102,7 @@ public class FileUtils {
     }
 
     public FileEntity createDuplicateReference(
-            UserEntity user,
+            UserInfoDTO user,
             String originalFileName,
             String mimeType,
             Long fileSize,
@@ -109,8 +110,9 @@ public class FileUtils {
             FileEntity existingFile,
             String uploadIpAddress
     ) {
+        UserEntity userEntity = UserEntity.findById(user.id());
         FileEntity file = new FileEntity();
-        file.setUploadedBy(user);
+        file.setUploadedBy(userEntity);
         file.setOriginalFileName(originalFileName);
         file.setStoredFileName(existingFile.getStoredFileName());
         file.setMimeType(mimeType);

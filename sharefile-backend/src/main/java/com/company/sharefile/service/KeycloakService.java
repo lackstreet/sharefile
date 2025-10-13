@@ -1,6 +1,6 @@
 package com.company.sharefile.service;
 
-import com.company.sharefile.dto.v1.request.UserCreateRequestDTO;
+import com.company.sharefile.dto.v1.records.request.UserCreateRequestDTO;
 import com.company.sharefile.exception.ApiException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,14 +37,14 @@ public class KeycloakService {
         String keycloakUserId="";
 
         try {
-            log.infof("Creating user in Keycloak: %s", userRequestDTO.getEmail());
+            log.infof("Creating user in Keycloak: %s", userRequestDTO.email());
 
             // 1. OTTIENI RISORSE KEYCLOAK
             RealmResource realmResource = keycloak.realm(keycloakRealm);
             UsersResource usersResource = realmResource.users();
 
             // 2. NORMALIZZA EMAIL
-            String normalizedEmail = userRequestDTO.getEmail().toLowerCase().trim();
+            String normalizedEmail = userRequestDTO.email().toLowerCase().trim();
 
             // 3. CONTROLLA SE UTENTE ESISTE GIÀ IN KEYCLOAK
             List<UserRepresentation> existingUsers = usersResource.search(normalizedEmail, true);
@@ -62,8 +62,8 @@ public class KeycloakService {
             UserRepresentation userRep = new UserRepresentation();
             userRep.setUsername(normalizedEmail);
             userRep.setEmail(normalizedEmail);
-            userRep.setFirstName(userRequestDTO.getFirstName().trim());
-            userRep.setLastName(userRequestDTO.getLastName().trim());
+            userRep.setFirstName(userRequestDTO.firstName().trim());
+            userRep.setLastName(userRequestDTO.lastName().trim());
             userRep.setEnabled(true);
             userRep.setEmailVerified(!emailVerificationEnabled);
 
@@ -85,7 +85,7 @@ public class KeycloakService {
             log.infof("Keycloak user created successfully with ID: %s", keycloakUserId);
 
             // 7. IMPOSTA PASSWORD
-            setPassword(usersResource, keycloakUserId, userRequestDTO.getPassword());
+            setPassword(usersResource, keycloakUserId, userRequestDTO.password());
 
             // 8. ASSEGNA GRUPPO DI BASE ("user")
             assignGroup(usersResource, keycloakUserId);
