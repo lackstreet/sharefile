@@ -61,7 +61,7 @@ public class UserResource {
     public Response createUser(UserCreateRequestDTO newUser) {
 
         log.infof("Resource: Received request to create user for email: %s", newUser.email());
-        UserCreateResponseDTO userCreated = userService.createAccess(newUser);
+        UserCreateResponseDTO userCreated = userService.create(newUser);
 
         URI location = UriBuilder.fromPath("/api/v1/users/{id}")
                 .build(userCreated.id());
@@ -106,17 +106,5 @@ public class UserResource {
         return Response.ok(user).build();
     }
 
-    /**
-     * NUOVO: Info quota storage
-     */
-    @GET
-    @Path("/quota")
-    @Authenticated
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get storage quota info")
-    public Response getQuota() {
-        log.info("Getting quota info");
-        QuotaInfo quota = userService.getQuotaInfo();
-        return Response.ok(quota).build();
-    }
+
 }

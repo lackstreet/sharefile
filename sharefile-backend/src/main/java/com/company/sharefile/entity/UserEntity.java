@@ -32,7 +32,7 @@ public class UserEntity extends PanacheEntityBase {
     @Column(name = "keycloak_id", unique = true, nullable = false, updatable = false)
     @NotNull(message = "Keycloak ID cannot be blank")
     @EqualsAndHashCode.Include
-    private UUID keycloakId;
+    private String keycloakId;
 
     @Column(name = "username", length = 32, unique = true, nullable = false)
     @Size(min = 3, max = 32, message = "Username must be between 3 and 32 characters")

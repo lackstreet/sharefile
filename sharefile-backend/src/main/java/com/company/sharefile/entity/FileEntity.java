@@ -9,7 +9,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Entity
@@ -79,6 +78,9 @@ public class FileEntity extends PanacheEntityBase {
     @Column(name = "uploaded_at")
     private LocalDateTime uploadedAt;
 
+    @Column(name = "encryption_key", length = 512)
+    @Size(max = 512, message = "Encryption key must be less than 512 characters")
+    private String encryptionKey;
 
     @Column(name = "encryption_iv", length = 32)
     @Size(max = 32, message = "IV must be less than 32 characters")

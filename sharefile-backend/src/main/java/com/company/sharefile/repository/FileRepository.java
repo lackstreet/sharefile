@@ -35,14 +35,7 @@ public class FileRepository implements PanacheRepository<FileEntity> {
 
     public UUID createDuplicateReference(UserEntity user, String originalFileName, String storedFileName, String mimeType, Long fileSize, String checksum, String uploadIpAddress) {
         FileEntity newFile = new FileEntity();
-        newFile.setUploadedBy(user);
-        newFile.setOriginalFileName(originalFileName);
-        newFile.setStoredFileName(storedFileName);
-        newFile.setMimeType(mimeType);
-        newFile.setFileSizeBytes(fileSize);
-        newFile.setChecksumSha256(checksum);
-        newFile.setUploadIp(uploadIpAddress);
-        newFile.setIsDeleted(false);
+
         persist(newFile);
         if(newFile.isPersistent())
             return newFile.getId();

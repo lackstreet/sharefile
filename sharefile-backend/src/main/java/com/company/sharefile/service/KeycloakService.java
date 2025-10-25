@@ -34,7 +34,7 @@ public class KeycloakService {
 
     public String createUserInKeycloak(UserCreateRequestDTO userRequestDTO) {
         Response response = null;
-        String keycloakUserId="";
+        String keycloakId="";
 
         try {
             log.infof("Creating user in Keycloak: %s", userRequestDTO.email());
@@ -81,25 +81,25 @@ public class KeycloakService {
             }
 
             // 6. ESTRAI USER ID
-            keycloakUserId = extractUserIdFromResponse(response);
-            log.infof("Keycloak user created successfully with ID: %s", keycloakUserId);
+            keycloakId = extractUserIdFromResponse(response);
+            log.infof("Keycloak user created successfully with ID: %s", keycloakId);
 
             // 7. IMPOSTA PASSWORD
-            setPassword(usersResource, keycloakUserId, userRequestDTO.password());
+            setPassword(usersResource, keycloakId, userRequestDTO.password());
 
             // 8. ASSEGNA GRUPPO DI BASE ("user")
-            assignGroup(usersResource, keycloakUserId);
+            assignGroup(usersResource, keycloakId);
 
             // 8. INVIA EMAIL DI VERIFICA (solo se abilitato)
             if (emailVerificationEnabled) {
-                sendVerificationEmail(usersResource, keycloakUserId);
+                sendVerificationEmail(usersResource, keycloakId);
             }
 
-            return keycloakUserId;
+            return keycloakId;
 
         } catch (Exception e) {
-            if( !keycloakUserId.isBlank())
-                deleteUserFromKeycloak(keycloakUserId);
+            if( !keycloakId.isBlank())
+                deleteUserFromKeycloak(keycloakId);
             log.errorf(e, "Unexpected error creating user in Keycloak: %s", e.getMessage());
             throw new ApiException(
                     "Failed to create user in Keycloak: " + e.getMessage(),
@@ -120,14 +120,14 @@ public class KeycloakService {
     /**
      * Elimina un utente da Keycloak (utile per rollback)
      */
-    public void deleteUserFromKeycloak(String keycloakUserId) {
+    public void deleteUserFromKeycloak(String keycloakId) {
         try {
-            log.infof("Deleting user from Keycloak: %s", keycloakUserId);
+            log.infof("Deleting user from Keycloak: %s", keycloakId);
             RealmResource realmResource = keycloak.realm(keycloakRealm);
-            realmResource.users().get(keycloakUserId).remove();
-            log.infof("User %s deleted from Keycloak", keycloakUserId);
+            realmResource.users().get(keycloakId).remove();
+            log.infof("User %s deleted from Keycloak", keycloakId);
         } catch (Exception e) {
-            log.errorf(e, "Failed to delete user %s from Keycloak", keycloakUserId);
+            log.errorf(e, "Failed to delete user %s from Keycloak", keycloakId);
         }
     }
 

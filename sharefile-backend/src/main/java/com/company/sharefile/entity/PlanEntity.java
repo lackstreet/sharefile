@@ -60,4 +60,10 @@ public class PlanEntity extends PanacheEntityBase {
     protected void prePersist() {
         createdAt = LocalDateTime.now();
     }
+
+    public PlanEntity findByPlanType(PlanType planType) {
+        return find("planType", planType).firstResult();
+    }
+
+
 }

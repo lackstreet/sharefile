@@ -4,23 +4,10 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-
-package com.company.sharefile.entity;
-
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 
 @Entity
@@ -86,7 +73,7 @@ public class TransferRecipientEntity extends PanacheEntityBase {
         }
         // Genera token univoco se non presente
         if (accessToken == null) {
-            accessToken = generateSecureToken();
+          //  accessToken = generateSecureToken();
         }
     }
 }

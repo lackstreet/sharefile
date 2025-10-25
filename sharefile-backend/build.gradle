@@ -49,6 +49,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
+    // Azure Blob Storage SDK
+    implementation 'com.azure:azure-storage-blob:12.25.0'
+    implementation 'com.azure:azure-identity:1.11.0'
+
     // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
