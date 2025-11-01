@@ -43,7 +43,7 @@ public class UploadResource {
             @QueryParam("filename")
             String fileName,
 
-            @QueryParam("mimeType")
+            @QueryParam("mimetype")
             @DefaultValue("application/octet-stream")
             String mimeType,
 
@@ -77,10 +77,9 @@ public class UploadResource {
             InputStream inputStream = new ByteArrayInputStream(fileBytes);
             FileEntity uploadedFile = fileService.uploadFile(inputStream,sanitizedFileName,fileSize, mimeType, keycloakId);
 
-            log.infof("✅ REST: File uploaded successfully - ID: %s, Name: %s",
+            log.infof("REST: File uploaded successfully - ID: %s, Name: %s",
                     uploadedFile.getId(), uploadedFile.getFileName());
 
-            // 11. Ritorna FileEntity (Jackson mapping automatico)
             return Response.status(Response.Status.CREATED)
                     .entity(uploadedFile)
                     .build();

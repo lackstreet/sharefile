@@ -17,9 +17,10 @@ public class ApiExceptionMapper implements ExceptionMapper<ApiException> {
         Response.Status status = exception.getStatus();
         String internalDocumentationErrorCode = exception.getClass().getSimpleName();
 
-        LOG.warnf("Errore  (Codice %s): %s",
+        LOG.errorf("Errore  (Codice %s): %s, %s",
                 exception.getInternalDocumentationErrorCode(),
-                exception.getMessage());
+                exception.getMessage(),
+                status);
 
         ErrorResponseDTO errorDTO = new ErrorResponseDTO(
                 status.getStatusCode(),

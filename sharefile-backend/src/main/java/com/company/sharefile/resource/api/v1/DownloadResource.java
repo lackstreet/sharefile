@@ -63,6 +63,5 @@ public class DownloadResource {
                 .header("X-File-ID", fileEntity.getId())
                 .header("X-File-Checksum", fileEntity.getChecksum())
                 .build();
-
     }
 }

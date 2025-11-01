@@ -154,6 +154,7 @@ public final class ValidationConstants {
     public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
     public static final int LINK_TOKEN_LENGTH = 32;
     public static final int CLEANUP_BATCH_SIZE = 100;
+    public static final int RANDOM_STRING_LENGTH = 16;
 
     // Timezone
     public static final String DEFAULT_TIMEZONE = "UTC";

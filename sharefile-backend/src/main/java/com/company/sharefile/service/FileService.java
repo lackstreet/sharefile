@@ -1,5 +1,6 @@
 package com.company.sharefile.service;
 
+import com.company.sharefile.dto.v1.records.response.FileDataResponseDTO;
 import com.company.sharefile.entity.FileEntity;
 import com.company.sharefile.entity.UserEntity;
 import com.company.sharefile.exception.ApiException;
@@ -12,12 +13,16 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @ApplicationScoped
 public class FileService {
@@ -32,6 +37,16 @@ public class FileService {
 
     @Inject
     EncryptionService encryptionService;
+
+    public String getFileName(FileEntity file){
+        String originalFileName = file.getFileName();
+        String mimeType = file.getMimeType();
+        if(mimeType != null && mimeType.contains("/")){
+            String extension = mimeType.split("/")[1];
+            return originalFileName + "." + extension;
+        }
+        return originalFileName;
+    }
 
     private String calcolateChecksum(byte[] fileBytes){
         try{
@@ -211,4 +226,55 @@ public class FileService {
             );
         }
     }
+
+    public FileDataResponseDTO downloadSingleFile(FileEntity fileEntity) {
+        log.infof("Single file download for file id: %s", fileEntity.getId());
+
+        byte[] fileData = downloadFileAsBytes(
+                fileEntity.getId().toString(),
+                fileEntity.getCreatedBy().getKeycloakId()
+        );
+
+        return new FileDataResponseDTO(
+                getFileName(fileEntity),
+                fileEntity.getMimeType(),
+                fileEntity.getFileSize(),
+                fileData
+        );
+    }
+
+    public FileDataResponseDTO downloadAsZip(List<FileEntity> files, String zipFileName) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+            for (FileEntity file : files) {
+                byte[] fileData = downloadFileAsBytes(
+                        file.getId().toString(),
+                        file.getCreatedBy().getKeycloakId()
+                );
+
+                ZipEntry zipEntry = new ZipEntry(getFileName(file));
+                zipOutputStream.putNextEntry(zipEntry);
+                zipOutputStream.write(fileData);
+                zipOutputStream.closeEntry();
+            }
+            zipOutputStream.finish();
+
+            byte[] zipData = byteArrayOutputStream.toByteArray();
+
+            return new FileDataResponseDTO(
+                    zipFileName,
+                    "application/zip",
+                    (long) zipData.length,
+                    zipData
+            );
+        } catch (Exception e) {
+            throw new ApiException(
+                    String.format("Error creating ZIP transferName: %s \n error: %s",zipFileName, e.getMessage()),
+                    Response.Status.INTERNAL_SERVER_ERROR,
+                    "LAM-500-005"
+            );
+        }
+
+    }
+
 }
