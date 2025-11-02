@@ -61,6 +61,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-mailer:3.29.0'
     implementation 'io.quarkus:quarkus-qute:3.29.0'
 
+    //scheduler
+    implementation 'io.quarkus:quarkus-scheduler:3.29.0'
+
     // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
