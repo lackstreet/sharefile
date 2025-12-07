@@ -53,9 +53,6 @@ dependencies {
     implementation 'com.azure:azure-storage-blob:12.25.0'
     implementation 'com.azure:azure-identity:1.11.0'
 
-    //redis
-    implementation 'io.quarkus:quarkus-redis-cache:3.29.0'
-    implementation 'io.quarkus:quarkus-redis-client:3.29.0'
 
     //mail
     implementation 'io.quarkus:quarkus-mailer:3.29.0'
