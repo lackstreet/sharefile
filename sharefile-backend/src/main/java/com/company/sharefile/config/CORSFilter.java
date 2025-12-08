@@ -18,7 +18,7 @@ public class CORSFilter implements ContainerResponseFilter {
         setHeaderIfAbsent(responseContext, "Access-Control-Allow-Origin", ALLOWED_ORIGIN);
         setHeaderIfAbsent(responseContext, "Access-Control-Allow-Credentials", "true");
         setHeaderIfAbsent(responseContext, "Access-Control-Allow-Headers",
-                "Origin, Content-Type, Accept, Authorization");
+                "Origin, Content-Type, Accept, Authorization, X-CSRF-Token");
         setHeaderIfAbsent(responseContext, "Access-Control-Allow-Methods",
                 "GET, POST, PUT, DELETE, OPTIONS");
 

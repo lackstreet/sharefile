@@ -16,6 +16,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 @ApplicationScoped
 public class AuthService {
 
@@ -27,6 +30,7 @@ public class AuthService {
     private static final String PARAM_USERNAME = "username";
     private static final String PARAM_PASSWORD = "password";
     private static final String PARAM_REFRESH_TOKEN = "refresh_token";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @ConfigProperty(name = "quarkus.oidc.client-id")
     String clientId;
@@ -40,6 +44,9 @@ public class AuthService {
 
     @Inject
     SecurityIdentity identity;
+
+    @Inject
+    CsrfService csrfService;
 
     @Inject
     Logger log;
@@ -77,13 +84,13 @@ public class AuthService {
                 : "unknown";
     }
 
-    public void getAuthentication(AuthenticationRequestDTO authenticationRequest) {
+    public AuthenticationResponseDTO getAuthentication(AuthenticationRequestDTO authenticationRequest) {
         try {
             MultivaluedMap<String, String> loginForm = getLoginFormData(
                     authenticationRequest.username(),
                     authenticationRequest.password()
             );
-            tokenClient.getToken(loginForm);
+            return tokenClient.getToken(loginForm);
         } catch (ClientWebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 401) {
@@ -120,22 +127,18 @@ public class AuthService {
     }
 
 
-    public void refreshToken(RefreshTokenRequestDTO refreshTokenRequest) {
+    public AuthenticationResponseDTO refreshToken(String refreshToken) {
         try {
-            String username = getCurrentUsername();
-            log.infof("Token refresh attempt for user: %s", username);
-
-            MultivaluedMap<String, String> refreshTokenForm = getTokenRefreshFormData(refreshTokenRequest.refreshToken());
-            tokenClient.getToken(refreshTokenForm);
+            log.infof("Token refresh attempt for user: %s", getCurrentUsername());
+            MultivaluedMap<String, String> refreshTokenForm = getTokenRefreshFormData(refreshToken);
+            return tokenClient.getToken(refreshTokenForm);
         } catch (ClientWebApplicationException e) {
-            log.warnf("Token refresh failed - invalid or expired token for user %s", getCurrentUsername());
             throw new ApiException(
                     "Invalid or expired refresh token.",
                     Response.Status.UNAUTHORIZED,
                     "LAM-401-002"
             );
         } catch (Exception e) {
-            log.error("Token refresh service error", e);
             throw new ApiException(
                     "Token refresh service error.",
                     Response.Status.INTERNAL_SERVER_ERROR,
@@ -162,5 +165,14 @@ public class AuthService {
                     "LAM-500-003"
             );
         }
+    }
+
+    public String setCookie(String name, String value, int maxAge, boolean httpOnly){
+        String cookie = "%s=%s; Path=/; Max-Age=%d; Secure; SameSite=None".formatted(name, value, maxAge);
+        if (httpOnly) cookie += "; HttpOnly";
+        return cookie;
+    }
+    public String generateCsrfToken() {
+       return csrfService.generate();
     }
 }

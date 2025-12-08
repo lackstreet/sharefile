@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import {Api} from "./api";
+import {HttpClient} from "@angular/common/http";
 
 interface LoginRequest {
   email: string;
@@ -13,63 +14,57 @@ interface LoginRequest {
   providedIn: 'root'
 })
 export class Auth {
-  private tokenKey = 'sharefile_token';
-  private currentUserSubject = new BehaviorSubject<any>(null);
+
+  static readonly LOGIN_ENDPOINT = 'auth/login';
+  static readonly LOGOUT_ENDPOINT = 'auth/logout';
+  static readonly REFRESH_TOKEN_ENDPOIN = 'auth/refresh';
+  static readonly HEALTH_ENDPOINT = 'health';
+
+  private currentUserSubject = new BehaviorSubject<boolean>(false);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private api: Api) {
-    this.loadStoredUser();
-  }
+  constructor(private api: Api, private call: HttpClient) {}
 
-  login(username: string, password: string): Observable<any> {
-    return this.api.post('auth/login', { username, password }).pipe(
-        tap((response: any) => {
-          // Leggi token dall'header Authorization
-          const authHeader = response.headers.get('Authorization');
-          if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.substring(7); // Rimuovi "Bearer "
-            localStorage.setItem(this.tokenKey, token);
-            this.loadUserFromToken();
-          }
-        })
+  initCsrf(): Observable<any> {
+    return this.call.get(
+        this.api.getEndpointUrl(Auth.HEALTH_ENDPOINT),
+        { withCredentials: true }
     );
   }
 
-  private loadUserFromToken(): void {
-    const token = this.getToken();
-    if (token) {
-      const payload = this.decodeToken(token);
-      this.currentUserSubject.next(payload);
-    }
+  login(username: string, password: string): Observable<any> {
+    return this.call.post(
+        this.api.getEndpointUrl(Auth.LOGIN_ENDPOINT),
+        { username, password },
+        { withCredentials: true }
+    ).pipe(
+        tap(() => this.currentUserSubject.next(true))
+    );
   }
 
-  logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    this.currentUserSubject.next(null);
+  logout(): Observable<any> {
+    return this.call.post(
+        this.api.getEndpointUrl(Auth.LOGOUT_ENDPOINT),
+        {},
+        { withCredentials: true }
+    ).pipe(
+        tap(() => this.currentUserSubject.next(false))
+    );
   }
 
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+  refreshToken(): Observable<any> {
+    return this.call.post(
+        this.api.getEndpointUrl(Auth.REFRESH_TOKEN_ENDPOIN),
+        {},
+        { withCredentials: true }
+    );
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return this.currentUserSubject.value;
   }
 
-  private loadStoredUser(): void {
-    const token = this.getToken();
-    if (token) {
-      // Qui potresti fare una chiamata GET /auth/me per ricaricare l'utente
-      // Per ora assume che il token sia valido
-    }
-  }
-
-  private decodeToken(token: string): any {
-    try {
-      const payload = token.split('.')[1];
-      return JSON.parse(atob(payload));
-    } catch (e) {
-      return null;
-    }
+  setAuthenticated(auth: boolean) {
+    this.currentUserSubject.next(auth);
   }
 }

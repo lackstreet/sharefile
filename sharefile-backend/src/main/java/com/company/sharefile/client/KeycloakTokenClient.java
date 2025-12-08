@@ -14,7 +14,7 @@ public interface KeycloakTokenClient {
     @Path("/token")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    void getToken(MultivaluedMap<String, String> formData);
+    AuthenticationResponseDTO getToken(MultivaluedMap<String, String> formData);
 
     @POST
     @Path("/logout")
