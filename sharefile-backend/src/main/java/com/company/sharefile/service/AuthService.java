@@ -77,20 +77,38 @@ public class AuthService {
                 : "unknown";
     }
 
-    public AuthenticationResponseDTO getAuthentication(AuthenticationRequestDTO authenticationRequest) {
+    public void getAuthentication(AuthenticationRequestDTO authenticationRequest) {
         try {
             MultivaluedMap<String, String> loginForm = getLoginFormData(
                     authenticationRequest.username(),
                     authenticationRequest.password()
             );
-            return tokenClient.getToken(loginForm);
+            tokenClient.getToken(loginForm);
         } catch (ClientWebApplicationException e) {
-            log.warnf("Authentication failed for user: %s", authenticationRequest.username());
-            throw new ApiException(
-                    "Invalid username or password.",
-                    Response.Status.UNAUTHORIZED,
-                    "LAM-401-001"
-            );
+            int status = e.getResponse().getStatus();
+            if (status == 401) {
+                // Qui puoi distinguere tra username e password se il backend lo fornisce
+                log.warnf("Invalid password for user: %s", authenticationRequest.username());
+                throw new ApiException(
+                        "Invalid password.",
+                        Response.Status.UNAUTHORIZED,
+                        "LAM-401-002"
+                );
+            } else if (status == 404) {
+                log.warnf("User not found: %s", authenticationRequest.username());
+                throw new ApiException(
+                        "Invalid username.",
+                        Response.Status.UNAUTHORIZED,
+                        "LAM-401-003"
+                );
+            } else {
+                log.errorf(e, "Authentication service error for user: %s", authenticationRequest.username());
+                throw new ApiException(
+                        "Authentication service error.",
+                        Response.Status.INTERNAL_SERVER_ERROR,
+                        "LAM-500-001"
+                );
+            }
         } catch (Exception e) {
             log.errorf(e, "Authentication service error for user: %s", authenticationRequest.username());
             throw new ApiException(
@@ -101,13 +119,14 @@ public class AuthService {
         }
     }
 
-    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO refreshTokenRequest) {
+
+    public void refreshToken(RefreshTokenRequestDTO refreshTokenRequest) {
         try {
             String username = getCurrentUsername();
             log.infof("Token refresh attempt for user: %s", username);
 
             MultivaluedMap<String, String> refreshTokenForm = getTokenRefreshFormData(refreshTokenRequest.refreshToken());
-            return tokenClient.getToken(refreshTokenForm);
+            tokenClient.getToken(refreshTokenForm);
         } catch (ClientWebApplicationException e) {
             log.warnf("Token refresh failed - invalid or expired token for user %s", getCurrentUsername());
             throw new ApiException(
@@ -124,6 +143,7 @@ public class AuthService {
             );
         }
     }
+
 
     public void logout(RefreshTokenRequestDTO logoutRequest) {
         try {

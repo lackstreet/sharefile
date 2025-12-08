@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import {environment} from "../../../environments/environment.development";
-import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
+import { environment } from "../../../environments/environment.development";
+import { HttpClient, HttpResponse } from "@angular/common/http";
+import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: 'root',
 })
 export class Api {
-  private apiUrl= environment.apiUrl;
+  private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) {}
 
   get<T>(endpoint: string): Observable<T> {
     return this.http.get<T>(`${this.apiUrl}/${endpoint}`);
   }
 
-  post<T>(endpoint: string, data: any): Observable<T> {
+  post<T>(endpoint: string, data: any): Observable<T>{
     return this.http.post<T>(`${this.apiUrl}/${endpoint}`, data);
   }
 
@@ -25,5 +25,4 @@ export class Api {
   delete<T>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}/${endpoint}`);
   }
-  
 }

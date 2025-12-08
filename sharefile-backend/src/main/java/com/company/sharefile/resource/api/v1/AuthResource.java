@@ -3,6 +3,7 @@ package com.company.sharefile.resource.api.v1;
 import com.company.sharefile.dto.v1.records.request.AuthenticationRequestDTO;
 import com.company.sharefile.dto.v1.records.request.RefreshTokenRequestDTO;
 import com.company.sharefile.dto.v1.records.response.AuthenticationResponseDTO;
+import com.company.sharefile.exception.ApiException;
 import com.company.sharefile.service.AuthService;
 import com.company.sharefile.service.UserService;
 import io.quarkus.security.Authenticated;
@@ -32,7 +33,6 @@ public class AuthResource {
     @Inject
     AuthService authService;
 
-
     @POST
     @Path("/login")
     @PermitAll
@@ -42,13 +42,24 @@ public class AuthResource {
     )
     public Response login(@Valid AuthenticationRequestDTO loginRequest) {
         log.infof("Login attempt for user: %s", loginRequest.username());
-
-        AuthenticationResponseDTO authenticate = authService.getAuthentication(loginRequest);
-        userService.updateLastLogin(loginRequest.username());
-
-        log.infof("User %s logged in successfully", loginRequest.username());
-        return Response.ok(authenticate).build();
+        try {
+            authService.getAuthentication(loginRequest);
+            userService.updateLastLogin(loginRequest.username());
+            log.infof("User %s logged in successfully", loginRequest.username());
+            return Response.ok().build();
+        } catch (ApiException e) {
+            // Ritorna al frontend lo status e il messaggio dell'ApiException
+            return Response.status(e.getStatus())
+                    .entity(Map.of("error", e.getMessage(), "code", e.getInternalDocumentationErrorCode()))
+                    .build();
+        } catch (Exception e) {
+            log.errorf(e, "Unexpected error during login for user: %s", loginRequest.username());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Unexpected authentication error"))
+                    .build();
+        }
     }
+
 
     @POST
     @Path("/refresh")
@@ -60,10 +71,10 @@ public class AuthResource {
     public Response refreshToken(RefreshTokenRequestDTO loggedUserToken) {
         log.info("Token refresh attempt for refresh");
 
-        AuthenticationResponseDTO newToken = authService.refreshToken(loggedUserToken);
+       // AuthenticationResponseDTO newToken = authService.refreshToken(loggedUserToken);
 
         log.info("Token refreshed successfully");
-        return Response.ok(newToken).build();
+        return Response.ok().build();
     }
 
     @POST

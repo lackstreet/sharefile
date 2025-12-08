@@ -8,15 +8,6 @@ interface LoginRequest {
   password: string;
 }
 
-interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
-}
 
 @Injectable({
   providedIn: 'root'
@@ -30,22 +21,26 @@ export class Auth {
     this.loadStoredUser();
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('auth/login', { email, password }).pipe(
-        tap((response: AuthResponse) => {
-          localStorage.setItem(this.tokenKey, response.token);
-          this.currentUserSubject.next(response.user);
+  login(username: string, password: string): Observable<any> {
+    return this.api.post('auth/login', { username, password }).pipe(
+        tap((response: any) => {
+          // Leggi token dall'header Authorization
+          const authHeader = response.headers.get('Authorization');
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7); // Rimuovi "Bearer "
+            localStorage.setItem(this.tokenKey, token);
+            this.loadUserFromToken();
+          }
         })
     );
   }
 
-  register(data: any): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('auth/register', data).pipe(
-        tap((response: AuthResponse) => {
-          localStorage.setItem(this.tokenKey, response.token);
-          this.currentUserSubject.next(response.user);
-        })
-    );
+  private loadUserFromToken(): void {
+    const token = this.getToken();
+    if (token) {
+      const payload = this.decodeToken(token);
+      this.currentUserSubject.next(payload);
+    }
   }
 
   logout(): void {
@@ -66,6 +61,15 @@ export class Auth {
     if (token) {
       // Qui potresti fare una chiamata GET /auth/me per ricaricare l'utente
       // Per ora assume che il token sia valido
+    }
+  }
+
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
     }
   }
 }
