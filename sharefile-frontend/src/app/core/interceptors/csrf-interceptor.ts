@@ -4,6 +4,7 @@ export const CsrfInterceptor: HttpInterceptorFn = (req, next) => {
 
   const getCookie = (name: string): string | null => {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    console.log(document.cookie);
     return match ? decodeURIComponent(match[2]) : null;
   };
 

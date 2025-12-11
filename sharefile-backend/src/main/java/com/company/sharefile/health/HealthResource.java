@@ -1,4 +1,4 @@
-package com.company.sharefile.resource.api.v1;
+package com.company.sharefile.health;
 
 import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.GET;
@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 
-@Path("/api/v1/health")
+@Path("/health")
 public class HealthResource {
 
     @GET

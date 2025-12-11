@@ -28,15 +28,13 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-jwt'
     implementation 'io.quarkus:quarkus-security'
 
-    // Keycloak - USA L'ESTENSIONE QUARKUS (Raccomandato!)
-    implementation 'io.quarkus:quarkus-keycloak-admin-rest-client'  //
+    // Keycloak
+    implementation 'io.quarkus:quarkus-keycloak-admin-rest-client'
+   implementation 'io.quarkus:quarkus-keycloak-authorization'
 
     // Health & Observability
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
-
-    // MinIO
-    implementation 'io.minio:minio:8.5.12'
 
     // Utilities
     implementation 'org.apache.commons:commons-text:1.12.0'
@@ -53,7 +51,6 @@ dependencies {
     // Azure Blob Storage SDK
     implementation 'com.azure:azure-storage-blob:12.25.0'
     implementation 'com.azure:azure-identity:1.11.0'
-
 
     //mail
     implementation 'io.quarkus:quarkus-mailer:3.29.0'
