@@ -2,8 +2,7 @@ import { Box, Card, Typography } from "@mui/material";
 import { CustomTemplateProps } from "./types.ts";
 
 const Template = (props: CustomTemplateProps) => {
-   const { children, kcContext } = props;
-   const {realm} = kcContext;
+   const { children } = props;
     return (
         <Box display="flex" alignItems="center" justifyContent="center" height="100vh">
             <Box width = "400px">

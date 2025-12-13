@@ -1,5 +1,5 @@
 import { PageProps } from "../types.ts";
-import { Button, Card, CardContent, Grid, TextField, Typography, Link, Box, Divider, createTheme } from "@mui/material";
+import { Button, Card, CardContent, Grid, TextField, Typography, Link, Box, Divider } from "@mui/material";
 
 const Login = (props: PageProps<"login.ftl">) => {
     const { kcContext, i18n, Template } = props;
@@ -8,19 +8,9 @@ const Login = (props: PageProps<"login.ftl">) => {
     const colorPrimary = "#a2988e";
     const colorSecondary = "#fff6ed";
 
-    const theme = createTheme({
-        palette: {
-            laminam: {
-                main: "rgba(162,152,143,0.99)",
-                light: "#fff6ed",
-                dark: "#a2988e",
-                contrastText: "#fff6ed"
-            }
-        }
-    });
 
     return (
-        <Template kcContext={kcContext} i18n={i18n} headerNode={null} classes={{ root: "kc-wetransfer-layout" }}>
+        <Template kcContext={kcContext} i18n={i18n} >
             <Box
                 display="flex"
                 justifyContent="center"
@@ -199,7 +189,7 @@ const Login = (props: PageProps<"login.ftl">) => {
                         {realm.registrationAllowed && (
                             <Box textAlign="center" marginTop="24px">
                                 <Typography variant="body2" color="text.secondary" fontSize="13px">
-                                    Don't have an account?{" "}
+                                    Don&#39;t have an account?{" "}
                                     <Link
                                         href={url.registrationUrl}
                                         sx={{
