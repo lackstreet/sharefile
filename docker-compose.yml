@@ -80,6 +80,7 @@ services:
       KC_HEALTH_ENABLED: true
     volumes:
       - keycloak_data:/opt/keycloak/data/import
+      - ./themes/sharefile-theme:/opt/keycloak/providers
     command: start-dev --import-realm
     networks:
       - sharefile-network

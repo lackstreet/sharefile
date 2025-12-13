@@ -1,0 +1,3 @@
+yarn install
+yarn run storybook
+yarn run build-keycloak-theme    
