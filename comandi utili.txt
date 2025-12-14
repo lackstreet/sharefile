@@ -1,3 +1,17 @@
 yarn install
 yarn run storybook
 yarn run build-keycloak-theme    
+
+
+
+# 1. Ferma Keycloak
+docker-compose stop keycloak
+
+# 2. Rimuovi il container (per forzare il rimount del volume)
+docker-compose rm -f keycloak
+
+# 3. Riavvia Keycloak
+docker-compose up -d keycloak
+
+# 4. Verifica i log
+docker-compose logs -f keycloak

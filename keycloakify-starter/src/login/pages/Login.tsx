@@ -7,7 +7,7 @@ const Login = (props: PageProps<"login.ftl">) => {
     const { realm, url, messagesPerField } = kcContext;
 
     return (
-        <Template kcContext={kcContext} i18n={i18n} >
+        <Template kcContext={kcContext} i18n={i18n}>
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="auto" padding={0.1}>
                 {/* Login Card  */}
                 <Card
@@ -24,7 +24,7 @@ const Login = (props: PageProps<"login.ftl">) => {
                                 sx={{
                                     width: 64,
                                     height: 64,
-                                    background: "linear-gradient(135deg, #fff 38%, #a2988e 0%)",
+                                    background: "linear-gradient(135deg, #003b5c 38%, #003b5c 0%)",
                                     boxShadow: "0 4px 16px rgba(162, 152, 142, 0.3)"
                                 }}
                             >
@@ -39,14 +39,24 @@ const Login = (props: PageProps<"login.ftl">) => {
                             variant="h5"
                             fontWeight={700}
                             sx={{
-                                background: "linear-gradient(135deg, #a2988e 0%, #6d6560 100%)",
+                                background: "linear-gradient(135deg, #003b5c 0%, #6d6560 100%)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                                 backgroundClip: "text"
                             }}
                         >
                             Lamshare{" "}
-                            <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ fontSize: "13px", marginTop: "8px" }}>
+                            <Typography
+                                variant="body2"
+                                textAlign="center"
+                                sx={{
+                                    background: "linear-gradient(135deg, #a2988e 100%, #fff 0%)",
+                                    WebkitBackgroundClip: "text",
+                                    backgroundClip: "text",
+                                    fontSize: "13px",
+                                    marginTop: "4px"
+                                }}
+                            >
                                 share your files with Laminam
                             </Typography>
                         </Typography>
@@ -78,7 +88,7 @@ const Login = (props: PageProps<"login.ftl">) => {
                                                 "&.Mui-focused": {
                                                     backgroundColor: "#fff",
                                                     "& fieldset": {
-                                                        borderColor: "#a2988e"
+                                                        borderColor: "#003b5c"
                                                     }
                                                 }
                                             },
@@ -110,12 +120,12 @@ const Login = (props: PageProps<"login.ftl">) => {
                                                     borderColor: "#e0e0e0"
                                                 },
                                                 "&:hover fieldset": {
-                                                    borderColor: "#a2988e"
+                                                    borderColor: "#003b5c"
                                                 },
                                                 "&.Mui-focused": {
                                                     backgroundColor: "#fff",
                                                     "& fieldset": {
-                                                        borderColor: "#a2988e"
+                                                        borderColor: "#003b5c"
                                                     }
                                                 }
                                             },
@@ -136,13 +146,13 @@ const Login = (props: PageProps<"login.ftl">) => {
                                             padding: "12px 0",
                                             borderRadius: "10px",
                                             fontSize: "15px",
-                                            fontWeight: 600,
+                                            fontWeight: 550,
                                             textTransform: "none",
-                                            background: "linear-gradient(135deg, #a2988e 90%, #fff 20%)",
+                                            background: "linear-gradient(135deg, #003b5c 90%, rgba(162, 152, 142, 0.10) 20%)",
                                             boxShadow: "0 4px 16px rgba(162, 152, 142, 0.35)",
                                             transition: "all 0.3s ease",
                                             "&:hover": {
-                                                background: "linear-gradient(135deg, #a2988e 91%, #fff 10%)",
+                                                background: "linear-gradient(135deg, #003b5c 90.2%, #fff 10%)",
                                                 boxShadow: "0 6px 20px rgba(162, 152, 142, 0.5)",
                                                 transform: "translateY(-1px)"
                                             }
@@ -196,13 +206,14 @@ const Login = (props: PageProps<"login.ftl">) => {
                                                 fontSize: "15px",
                                                 fontWeight: 600,
                                                 textTransform: "none",
-                                                borderColor: "#a2988e",
-                                                color: "#a2988e",
+                                                borderColor: "#003b5c",
+                                                color: "#003b5c",
                                                 borderWidth: "1.5px",
+                                                background: "#fefefe",
                                                 "&:hover": {
                                                     borderWidth: "1.5px",
-                                                    borderColor: "#8a7f75",
-                                                    backgroundColor: "rgba(162, 152, 142, 0.04)",
+                                                    borderColor: "#003b5c",
+                                                    backgroundColor: "#fff",
                                                     transform: "translateY(-1px)"
                                                 }
                                             }}

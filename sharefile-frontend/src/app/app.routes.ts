@@ -1,15 +1,17 @@
 import { Routes } from '@angular/router';
 import {authGuard} from "./core/guards/auth-guard";
+import {UploadComponent} from "./features/upload/upload";
 
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: '/dashboard',
-        pathMatch: 'full',
+        redirectTo: '/upload',
+        pathMatch: 'full'
     },
     {
-        path: 'auth',
-        loadChildren: () => import('./features/auth/auth-module').then(load => load.AuthModule)
+        path: 'upload',
+        component: UploadComponent,
+        canActivate: [authGuard]
     },
     {
         path: 'dashboard',

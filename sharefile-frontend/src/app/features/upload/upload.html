@@ -1,0 +1,131 @@
+<div class="upload-container">
+    <div class="upload-card">
+
+        <!-- Header -->
+        <div class="upload-header">
+            <h1>Share your files</h1>
+            <p class="subtitle">Add files and share them with your colleagues</p>
+        </div>
+
+        <!-- Drag & Drop Area -->
+        <div
+                class="dropzone"
+                [class.dragover]="isDragOver"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+                (click)="fileInput.click()"
+        >
+            <input
+                #fileInput
+                type="file"
+                multiple
+                (change)="onFileSelected($event)"
+                style="display: none"
+            />
+
+            <div class="dropzone-content">
+                <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 18C4.79086 18 3 16.2091 3 14C3 11.7909 4.79086 10 7 10C7.11671 10 7.23251 10.0044 7.34726 10.0131C7.12515 9.36851 7 8.69644 7 8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8C17 8.69644 16.8749 9.36851 16.6527 10.0131C16.7675 10.0044 16.8833 10 17 10C19.2091 10 21 11.7909 21 14C21 16.2091 19.2091 18 17 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 21V11M12 11L9 14M12 11L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+
+                <h2>Drag and drop your files here</h2>
+                <p>or click to browse</p>
+                <span class="file-limit">Max 500MB per file</span>
+            </div>
+        </div>
+
+        <!-- Files List -->
+        <div class="files-list" *ngIf="files.length > 0">
+            <div class="files-header">
+                <h3>Files ({{ files.length }})</h3>
+                <span class="total-size">{{ getTotalSize() }}</span>
+            </div>
+
+            <div class="file-item" *ngFor="let file of files; let i = index">
+                <div class="file-info">
+                    <svg class="file-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+
+                    <div class="file-details">
+                        <span class="file-name">{{ file.name }}</span>
+                        <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                    </div>
+                </div>
+
+                <button class="remove-btn" (click)="removeFile(i)" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Recipients Section -->
+        <div class="recipients-section" *ngIf="files.length > 0">
+            <h3>Send to</h3>
+
+            <div class="email-input-wrapper">
+                <input
+                        type="email"
+                        [(ngModel)]="currentEmail"
+                        (keyup.enter)="addRecipient()"
+                        placeholder="Enter email address"
+                        class="email-input"
+                />
+                <button
+                        class="add-email-btn"
+                        (click)="addRecipient()"
+                        [disabled]="!isValidEmail(currentEmail)"
+                        type="button"
+                >
+                    Add
+                </button>
+            </div>
+
+            <div class="email-chips" *ngIf="recipients.length > 0">
+                <div class="email-chip" *ngFor="let email of recipients; let i = index">
+                    <span>{{ email }}</span>
+                    <button class="chip-remove" (click)="removeRecipient(i)" type="button">×</button>
+                </div>
+            </div>
+
+            <p class="error-message" *ngIf="emailError">{{ emailError }}</p>
+        </div>
+
+        <!-- Message Section -->
+        <div class="message-section" *ngIf="files.length > 0">
+            <h3>Message (optional)</h3>
+            <textarea
+                    [(ngModel)]="message"
+                    placeholder="Add a message to your transfer..."
+                    maxlength="500"
+                    rows="4"
+                    class="message-textarea"
+            ></textarea>
+            <span class="char-count">{{ message.length }}/500</span>
+        </div>
+
+        <!-- Transfer Button -->
+        <div class="transfer-actions" *ngIf="files.length > 0">
+            <button
+                    class="transfer-btn"
+                    (click)="createTransfer()"
+                    [disabled]="isUploading || recipients.length === 0"
+                    type="button"
+            >
+                <span *ngIf="!isUploading">Transfer</span>
+                <span *ngIf="isUploading">Uploading... {{ uploadProgress }}%</span>
+            </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" *ngIf="isUploading">
+            <div class="progress-bar" [style.width.%]="uploadProgress"></div>
+        </div>
+
+    </div>
+</div>

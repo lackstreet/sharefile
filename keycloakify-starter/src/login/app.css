@@ -5,7 +5,7 @@
 }
 
 body {
-    background:  linear-gradient(135deg, #a2988e 60%, #ffff 50%);
+    background:  linear-gradient(135deg, #a2988e 60%, rgba(162, 152, 142, 0.10) 50%);
     /* Grigio molto chiaro per lo sfondo generale */
     margin: 0;
     padding: 0;

@@ -1,0 +1,15 @@
+export * from './authResource.service';
+import { AuthResourceService } from './authResource.service';
+export * from './downloadResource.service';
+import { DownloadResourceService } from './downloadResource.service';
+export * from './healthResource.service';
+import { HealthResourceService } from './healthResource.service';
+export * from './transferResource.service';
+import { TransferResourceService } from './transferResource.service';
+export * from './uploadResource.service';
+import { UploadResourceService } from './uploadResource.service';
+export * from './userQuota.service';
+import { UserQuotaService } from './userQuota.service';
+export * from './userResource.service';
+import { UserResourceService } from './userResource.service';
+export const APIS = [AuthResourceService, DownloadResourceService, HealthResourceService, TransferResourceService, UploadResourceService, UserQuotaService, UserResourceService];

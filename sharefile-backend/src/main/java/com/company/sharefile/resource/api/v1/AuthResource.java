@@ -11,12 +11,11 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.logging.Logger;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+
 
     @Path("/api/v1/auth")
 @Produces(MediaType.APPLICATION_JSON)
@@ -37,18 +36,21 @@ public class AuthResource {
     @GET
     @Path("/user")
     @Authenticated
-    public Response getUser() {
+    @Operation(
+            operationId = "getCurrentUser",
+            summary = "Retrieve current authenticated user information",
+            description = "Fetches details of the currently authenticated user based on the JWT token."
+    )
+    public UserInfo getCurrentUser() {
         String subject = jwt.getClaim("sub");
         log.debugf("Get user: %s info", subject);
         try {
-            UserInfo userInfo =  UserInfo.builder()
+            return UserInfo.builder()
                     .username(jwt.getClaim("preferred_username"))
                     .email(jwt.getClaim("email"))
                     .name(jwt.getClaim("given_name"))
                     .roles(identity.getRoles())
                     .build();
-
-            return Response.ok(userInfo).build();
         }catch (Exception e){
             throw new ApiException(
                     String.format("Error retrieving user info: %s", e.getMessage()),

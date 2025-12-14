@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "generate-api": "openapi-generator-cli generate -i http://localhost:8081/openapi -g typescript-angular -o src/app/generated/api --additional-properties=providedInRoot=true,supportsES6=true"
   },
   "prettier": {
     "printWidth": 100,
@@ -39,6 +40,7 @@
     "@angular/build": "^20.3.8",
     "@angular/cli": "^20.3.8",
     "@angular/compiler-cli": "^20.3.0",
+    "@openapitools/openapi-generator-cli": "^2.25.2",
     "@types/jasmine": "~5.1.0",
     "ajv": "^6.12.6",
     "jasmine-core": "~5.9.0",

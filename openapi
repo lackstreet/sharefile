@@ -1,0 +1,275 @@
+---
+openapi: 3.1.0
+paths:
+  /api/v1/auth/logout:
+    post:
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Logout
+      tags:
+      - Auth Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/auth/user:
+    get:
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get User
+      tags:
+      - Auth Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/download/file/{fileId}:
+    get:
+      parameters:
+      - name: fileId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Download File
+      tags:
+      - Download Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/transfers:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Create Transfer
+      tags:
+      - Transfer Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/transfers/{shareLink}/download/{accessToken}:
+    get:
+      parameters:
+      - name: accessToken
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: shareLink
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Download Transfer
+      tags:
+      - Transfer Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/upload/file:
+    post:
+      parameters:
+      - name: filename
+        in: query
+        schema:
+          type: string
+          maxLength: 255
+          pattern: \S
+        required: true
+      - name: mimetype
+        in: query
+        schema:
+          type: string
+          default: application/octet-stream
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Upload File
+      tags:
+      - Upload Resource
+      security:
+      - SecurityScheme: []
+  /api/v1/users/create:
+    post:
+      summary: Create a new user
+      description: creates a new user in the system.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequestDTO"
+        required: true
+      responses:
+        "201":
+          description: user created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCreateRequestDTO"
+        "400":
+          description: invalid input data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: "Resource conflict (e.g., email already exists)."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      tags:
+      - User Resource
+  /api/v1/users/quota:
+    get:
+      summary: Ottieni quota storage
+      description: Restituisce le informazioni sulla quota storage dell'utente autenticato
+      tags:
+      - User quota
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /health:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: Health
+      tags:
+      - Health Resource
+components:
+  schemas:
+    ErrorResponseDTO:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+        internalDocumentationErrorCode:
+          type: string
+    TransferRequestDTO:
+      type: object
+      required:
+      - title
+      - recipientEmails
+      - files
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          pattern: \S
+        message:
+          type: string
+          maxLength: 2048
+        expiresInDays:
+          type: integer
+          format: int64
+          maximum: 30
+          minimum: 1
+        notifyRecipient:
+          type: boolean
+        recipientEmails:
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            type: string
+            pattern: \S
+        files:
+          type: array
+          maxItems: 50
+          minItems: 1
+          items:
+            type: string
+            pattern: \S
+    UserCreateRequestDTO:
+      type: object
+      required:
+      - email
+      - password
+      - firstName
+      - lastName
+      properties:
+        email:
+          type: string
+          maxLength: 255
+          pattern: \S
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+        firstName:
+          type: string
+          maxLength: 255
+          pattern: \S
+        lastName:
+          type: string
+          maxLength: 255
+          pattern: \S
+  securitySchemes:
+    SecurityScheme:
+      type: openIdConnect
+      openIdConnectUrl: http://localhost:8080/realms/sharefile/.well-known/openid-configuration
+      description: Authentication
+tags:
+- name: User quota
+  description: User quota operations
+info:
+  title: ShareFile API
+  version: 1.0.0

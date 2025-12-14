@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import {Auth} from "./core/services/auth";
+import {AuthService} from "./core/services/auth-service";
 
 @Component({
   selector: 'app-root',
@@ -8,13 +8,12 @@ import {Auth} from "./core/services/auth";
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('sharefile-frontend');
 
-  constructor(private auth: Auth) {}
+  constructor(private readonly authService: AuthService) {}
 
-  ngOnInit() {
-    this.auth.initCsrf().subscribe(() => {
-    });
+  ngOnInit(): void {
+    this.authService.checkAuth().subscribe();
   }
 }
