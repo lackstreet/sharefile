@@ -8,6 +8,9 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - sharefile-network
+    depends_on:
+      - keycloak
+    restart: unless-stopped
 
   # PostgreSQL - Database principale
   postgres:
@@ -31,28 +34,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-
-  # MinIO - File Storage
-  minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
-    container_name: sharefile-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    networks:
-      - sharefile-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
     restart: unless-stopped
 
   # Redis - Cache e Sessions
@@ -88,10 +69,13 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
+      KC_PROXY: edge
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_URL: http://localhost/auth
     volumes:
       - keycloak_data:/opt/keycloak/data/import
       - ./themes/sharefile-theme:/opt/keycloak/providers
-    command: start-dev --import-realm
+    command: start-dev --import-realm --http-relative-path=/auth
     networks:
       - sharefile-network
     depends_on:
@@ -130,7 +114,6 @@ services:
 volumes:
   postgres_data:
   keycloak_data:
-  minio_data:
   redis_data:
   azurite_data:
 

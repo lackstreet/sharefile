@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 
-@Path("/health")
+@Path("/api/health")
 public class HealthResource {
 
     @GET

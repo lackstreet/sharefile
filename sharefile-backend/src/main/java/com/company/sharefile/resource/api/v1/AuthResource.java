@@ -17,7 +17,7 @@ import org.jboss.logging.Logger;
 import java.net.URI;
 
 
-    @Path("/api/v1/auth")
+@Path("/api/v1/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Blocking
@@ -60,21 +60,6 @@ public class AuthResource {
         }
     }
 
-//        @GET
-//        @Path("/debug-token")
-//        @Authenticated
-//        public Map<String, Object> debugToken() {
-//            Map<String, Object> claims = new HashMap<>();
-//
-//            // Tutti i claim del token
-//            for (String claimName : jwt.getClaimNames()) {
-//                Object claimValue = jwt.getClaim(claimName);
-//                claims.put(claimName, claimValue);
-//                log.infof("Claim '%s': %s", claimName, claimValue);
-//            }
-//
-//            return claims;
-//        }
 
     @POST
     @Path("/logout")
