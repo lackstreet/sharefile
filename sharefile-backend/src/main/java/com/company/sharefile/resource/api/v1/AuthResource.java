@@ -34,7 +34,7 @@ public class AuthResource {
     SecurityIdentity identity;
 
     @GET
-    @Path("/user")
+    @Path("/me")
     @Authenticated
     @Operation(
             operationId = "getCurrentUser",
