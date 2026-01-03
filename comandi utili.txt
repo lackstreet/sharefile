@@ -1,6 +1,7 @@
 yarn install
 yarn run storybook
-yarn run build-keycloak-theme    
+yarn run build-keycloak-theme   
+ 
 
 
 
@@ -14,4 +15,10 @@ docker-compose rm -f keycloak
 docker-compose up -d keycloak
 
 # 4. Verifica i log
-docker-compose logs -f keycloak
+docker logs -fn 1000 keycloak
+
+# 5. Rigenera open-api
+
+
+
+

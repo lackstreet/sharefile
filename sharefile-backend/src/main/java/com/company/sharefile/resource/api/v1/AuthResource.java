@@ -17,7 +17,7 @@ import org.jboss.logging.Logger;
 import java.net.URI;
 
 
-@Path("/api/v1/auth")
+@Path("v1/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Blocking

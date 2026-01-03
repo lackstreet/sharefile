@@ -338,7 +338,6 @@
           "attributes": {}
         }
       ],
-      "sharefile-frontend": [],
       "security-admin-console": [],
       "admin-cli": [],
       "account-console": [],
@@ -871,21 +870,19 @@
       "clientId": "sharefile-backend",
       "name": "ShareFile Backend API",
       "description": "",
-      "rootUrl": "http://localhost:8081",
+      "rootUrl": "http://localhost",
       "adminUrl": "",
-      "baseUrl": "http://localhost:8081",
+      "baseUrl": "http://localhost",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://localhost:8081/*",
-        "http://localhost:4200/*"
+        "http://localhost/*"
       ],
       "webOrigins": [
-        "http://localhost:8081/*",
-        "http://localhost:4200/*"
+        "http://localhost/*"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -901,7 +898,7 @@
         "access.token.lifespan": "432000",
         "request.object.signature.alg": "any",
         "frontchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "http://localhost:8081##http://localhost:4200/*",
+        "post.logout.redirect.uris": "http://localhost##http://localhost/*",
         "oauth2.device.authorization.grant.enabled": "false",
         "use.jwks.url": "false",
         "backchannel.logout.revoke.offline.tokens": "false",
@@ -912,6 +909,7 @@
         "client_credentials.use_refresh_token": "false",
         "require.pushed.authorization.requests": "false",
         "request.object.encryption.enc": "any",
+        "dpop.bound.access.tokens": "false",
         "client.secret.creation.time": "1765129761",
         "request.object.encryption.alg": "any",
         "client.introspection.response.allow.jwt.claim.enabled": "false",
@@ -923,62 +921,6 @@
         "tls.client.certificate.bound.access.tokens": "false",
         "display.on.consent.screen": "false",
         "token.response.type.bearer.lower-case": "false"
-      },
-      "authenticationFlowBindingOverrides": {},
-      "fullScopeAllowed": true,
-      "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": [
-        "web-origins",
-        "acr",
-        "roles",
-        "profile",
-        "basic",
-        "email"
-      ],
-      "optionalClientScopes": [
-        "address",
-        "phone",
-        "offline_access",
-        "organization",
-        "microprofile-jwt"
-      ]
-    },
-    {
-      "id": "b0c404a2-96da-47a5-87e4-c8596fe97340",
-      "clientId": "sharefile-frontend",
-      "name": "ShareFile Frontend App",
-      "description": "",
-      "rootUrl": "http://localhost:4200",
-      "adminUrl": "http://localhost:4200",
-      "baseUrl": "http://localhost:4200",
-      "surrogateAuthRequired": false,
-      "enabled": true,
-      "alwaysDisplayInConsole": false,
-      "clientAuthenticatorType": "client-secret",
-      "redirectUris": [
-        "http://localhost:4200/*"
-      ],
-      "webOrigins": [
-        "http://localhost:4200"
-      ],
-      "notBefore": 0,
-      "bearerOnly": false,
-      "consentRequired": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": true,
-      "serviceAccountsEnabled": false,
-      "publicClient": true,
-      "frontchannelLogout": true,
-      "protocol": "openid-connect",
-      "attributes": {
-        "realm_client": "false",
-        "oidc.ciba.grant.enabled": "false",
-        "backchannel.logout.session.required": "true",
-        "standard.token.exchange.enabled": "false",
-        "post.logout.redirect.uris": "http://localhost:4200/*",
-        "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -1768,14 +1710,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-full-name-mapper",
-            "oidc-address-mapper",
-            "oidc-sha256-pairwise-sub-mapper",
             "saml-user-attribute-mapper",
             "oidc-usermodel-attribute-mapper",
-            "saml-user-property-mapper",
+            "oidc-full-name-mapper",
             "saml-role-list-mapper",
-            "oidc-usermodel-property-mapper"
+            "oidc-sha256-pairwise-sub-mapper",
+            "oidc-address-mapper",
+            "oidc-usermodel-property-mapper",
+            "saml-user-property-mapper"
           ]
         }
       },
@@ -1795,14 +1737,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-sha256-pairwise-sub-mapper",
-            "oidc-full-name-mapper",
+            "oidc-address-mapper",
             "saml-user-attribute-mapper",
             "saml-role-list-mapper",
-            "oidc-usermodel-property-mapper",
-            "oidc-usermodel-attribute-mapper",
             "saml-user-property-mapper",
-            "oidc-address-mapper"
+            "oidc-usermodel-attribute-mapper",
+            "oidc-full-name-mapper",
+            "oidc-usermodel-property-mapper",
+            "oidc-sha256-pairwise-sub-mapper"
           ]
         }
       },
@@ -2703,7 +2645,7 @@
     "acr.loa.map": "{}",
     "darkMode": "true"
   },
-  "keycloakVersion": "26.3.3",
+  "keycloakVersion": "26.4.7",
   "userManagedAccessAllowed": false,
   "organizationsEnabled": false,
   "verifiableCredentialsEnabled": false,

@@ -36,9 +36,6 @@ export class AuthService {
     }
 
     login(returnUrl?: string): void{
-        const urlToSave = returnUrl || window.location.pathname;
-        sessionStorage.setItem('returnUrl', urlToSave);
-        window.location.href = '/api/v1/auth/login';
     }
 
     logout(): void{

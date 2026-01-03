@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.Claims;
 import org.jboss.logging.Logger;
 
-@Path("/api/v1/transfers")
+@Path("v1/transfers")
 @Authenticated
 public class TransferResource {
     @Inject

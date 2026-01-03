@@ -17,7 +17,7 @@ import org.jboss.logging.Logger;
 import java.io.InputStream;
 import java.util.UUID;
 
-@Path("/api/v1/download")
+@Path("v1/download")
 @Authenticated
 public class DownloadResource {
 

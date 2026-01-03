@@ -19,7 +19,7 @@ import org.jboss.logging.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-@Path("/api/v1/upload")
+@Path("v1/upload")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated
 public class UploadResource {

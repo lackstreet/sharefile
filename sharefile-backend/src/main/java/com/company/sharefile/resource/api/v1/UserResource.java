@@ -25,7 +25,7 @@ import org.jboss.logging.Logger;
 import java.net.URI;
 
 @PermitAll
-@Path("/api/v1/users")
+@Path("v1/users")
 public class UserResource {
     @Inject
     UserService userService;
